@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>课题研究介绍 — 面向LLM Agent的对话质量检测与优化</title>
+<style>
+  :root {
+    --bg: #f7f8fa;
+    --card: #fff;
+    --text: #1a1a2e;
+    --sub: #5a6170;
+    --accent: #2563eb;
+    --border: #e2e8f0;
+    --tag-bg: #eff6ff;
+    --tag-text: #1d4ed8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--text);
+    line-height: 1.75;
+    font-size: 15px;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 24px 60px;
+  }
+
+  /* ===== Hero ===== */
+  .hero {
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 40%, #2563eb 100%);
+    color: #fff;
+    padding: 56px 44px;
+    border-radius: 18px;
+    margin-bottom: 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle at 15% 80%, rgba(37,99,235,0.25) 0%, transparent 50%),
+      radial-gradient(circle at 80% 15%, rgba(124,58,237,0.18) 0%, transparent 50%);
+  }
+  .hero h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    position: relative;
+    z-index: 1;
+  }
+  .hero .lead {
+    font-size: 1.08rem;
+    opacity: 0.88;
+    margin-top: 12px;
+    position: relative;
+    z-index: 1;
+    line-height: 1.7;
+  }
+  .hero .tags {
+    margin-top: 20px;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .hero-tag {
+    font-size: 0.78rem;
+    padding: 6px 16px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.11);
+    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(4px);
+    font-weight: 500;
+  }
+
+  /* ===== Section ===== */
+  .section {
+    background: var(--card);
+    border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.04);
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+  .section-header {
+    padding: 20px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-header h2 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .section-header .icon {
+    font-size: 1.25rem;
+  }
+  .section-body {
+    padding: 24px 28px;
+  }
+  .section-body p {
+    margin-bottom: 14px;
+    color: #334155;
+  }
+  .section-body p:last-child { margin-bottom: 0; }
+
+  /* ===== Flow ===== */
+  .flow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 20px 0;
+    padding: 20px 12px;
+    background: #f8fafc;
+    border-radius: 12px;
+  }
+  .flow-node {
+    background: #fff;
+    border: 2px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 10px 16px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #334155;
+    min-width: 80px;
+  }
+  .flow-node.hl {
+    border-color: var(--accent);
+    background: #eff6ff;
+    color: var(--accent);
+  }
+  .flow-arrow {
+    font-size: 1.3rem;
+    color: #94a3b8;
+    font-weight: 700;
+  }
+
+  /* ===== Table ===== */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 0.92rem;
+  }
+  th, td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    background: #f8fafc;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+  }
+  td { color: #334155; }
+  tr:last-child td { border-bottom: none; }
+
+  /* ===== Highlight box ===== */
+  .hl-box {
+    background: linear-gradient(135deg, #eff6ff, #f5f3ff);
+    border-left: 4px solid var(--accent);
+    padding: 16px 20px;
+    border-radius: 0 10px 10px 0;
+    margin: 16px 0;
+    font-size: 0.93rem;
+    color: #1e293b;
+  }
+
+  /* ===== Tags ===== */
+  .tag {
+    display: inline-block;
+    font-size: 0.75rem;
+    padding: 3px 10px;
+    border-radius: 6px;
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    margin-right: 6px;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .tag.amber { background: #fffbeb; color: #92400e; }
+  .tag.green { background: #ecfdf5; color: #065f46; }
+  .tag.purple { background: #f5f3ff; color: #6d28d9; }
+
+  /* ===== two columns ===== */
+  .cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  /* ===== List ===== */
+  ul.clean {
+    list-style: none;
+    padding: 0;
+  }
+  ul.clean li {
+    padding: 5px 0;
+    font-size: 0.93rem;
+    color: #334155;
+  }
+  ul.clean li::before {
+    content: "▸ ";
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  /* ===== Stat row ===== */
+  .stat-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin: 16px 0;
+  }
+  .stat-card {
+    flex: 1;
+    min-width: 140px;
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 16px 20px;
+    text-align: center;
+  }
+  .stat-card .num {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .stat-card .label {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 4px;
+  }
+
+  /* ===== footer ===== */
+  footer {
+    text-align: center;
+    padding: 28px 20px;
+    font-size: 0.78rem;
+    color: #94a3b8;
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .cols { grid-template-columns: 1fr; }
+    .container { padding: 16px 12px; }
+    .hero { padding: 32px 20px; border-radius: 12px; }
+    .hero h1 { font-size: 1.35rem; }
+    .hero .lead { font-size: 0.88rem; }
+    .section-header { padding: 14px 16px; }
+    .section-header h2 { font-size: 1rem; }
+    .section-body { padding: 14px 16px; }
+    .flow { gap: 6px; padding: 12px 6px; }
+    .flow-node { padding: 8px 10px; font-size: 0.75rem; min-width: 60px; }
+    .flow-arrow { font-size: 1rem; }
+    th, td { padding: 8px 10px; font-size: 0.8rem; }
+    .stat-card { min-width: 100px; padding: 12px 14px; }
+    .stat-card .num { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ==================== HERO ==================== -->
+  <div class="hero">
+    <h1>面向大语言模型智能体的<br>对话质量检测与优化研究</h1>
+    <div class="lead">
+      以工业级客服Agent平台为场景，研究大规模对话场景下<br>
+      LLM Agent输出质量异常的自动检出、聚类归因与闭环优化方法
+    </div>
+    <div class="tags">
+      <span class="hero-tag">大语言模型 Agent</span>
+      <span class="hero-tag">对话质量检测</span>
+      <span class="hero-tag">多源特征融合</span>
+      <span class="hero-tag">聚类与根因分析</span>
+      <span class="hero-tag">质量闭环优化</span>
+    </div>
+  </div>
+
+  <!-- ==================== 一、研究背景与问题 ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <span class="icon">📌</span>
+      <h2>一、研究背景与问题</h2>
+    </div>
+    <div class="section-body">
+
+      <p>随着大语言模型（LLM）在智能客服、企业服务等场景的规模化落地，基于ReAct范式的Agent系统已成为主流方案。然而，Agent在实际运行中会产生多种类型的输出异常（Badcase）——包括幻觉回答、敏感风险词、推理链路错误、工具调用失败、知识检索偏差等。这些异常不仅影响用户体验，还可能引发合规与业务风险。</p>
+
+      <p>当前面临的核心矛盾是：<strong>Agent输出质量问题的多样性与检测手段的单一性之间的差距</strong>。同时，大规模对话场景（日均百万级会话）使得人工全面审核不可行，亟需一套<strong>自动化的质量检测、归因与优化体系</strong>。</p>
+
+      <div class="hl-box">
+        <strong>核心研究问题：</strong>如何系统性地构建LLM Agent对话质量检测体系，实现对多类型异常的高效检出、准确聚类归因与持续闭环优化？
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== 二、研究对象与场景 ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <span class="icon">🎯</span>
+      <h2>二、研究对象与场景</h2>
+    </div>
+    <div class="section-body">
+
+      <p>本研究以<strong>工业级客服Agent平台</strong>为实证场景，该系统基于ReAct范式实现「推理→行动→观察」的对话决策循环，包含多种Agent拓扑结构。</p>
+
+      <!-- Scale stats -->
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="num">200万+</div>
+          <div class="label">日均会话量</div>
+        </div>
+        <div class="stat-card">
+          <div class="num">多类型</div>
+          <div class="label">异常检出维度</div>
+        </div>
+        <div class="stat-card">
+          <div class="num">多Agent</div>
+          <div class="label">拓扑结构变体</div>
+        </div>
+        <div class="stat-card">
+          <div class="num">闭环</div>
+          <div class="label">检出→修复→验证</div>
+        </div>
+      </div>
+
+      <!-- Core workflow -->
+      <p style="margin-top:20px;font-weight:600;color:#0f172a;">质量闭环核心链路：</p>
+      <div class="flow">
+        <div class="flow-node hl">Agent 对答<br>（ReAct范式）</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">异常检出<br>规则+LLM</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">聚类归因<br>根因识别</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">人工复检<br>修复决策</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node hl">知识/Prompt<br>优化迭代</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">效果验证<br>回归评测</div>
+      </div>
+
+      <p style="font-size:0.85rem;color:#64748b;margin-top:8px;">该闭环完整覆盖了从问题发现到修复验证的全流程，为系统性研究Agent输出质量管理提供了理想的工程实践场景。</p>
+
+    </div>
+  </div>
+
+  <!-- ==================== 三、关键研究挑战 ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <span class="icon">🔬</span>
+      <h2>三、关键研究挑战</h2>
+    </div>
+    <div class="section-body">
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:18%;">挑战域</th>
+            <th style="width:42%;">核心问题</th>
+            <th style="width:40%;">待探索方向</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>多源异常检测</strong></td>
+            <td>Agent输出异常类型多样（幻觉、风险词、推理错误、工具调用异常、检索偏差），单一方法难以全面覆盖</td>
+            <td>
+              <span class="tag">多维度特征提取</span>
+              <span class="tag amber">检测结果融合</span>
+              <span class="tag purple">高价值样本筛选</span>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>噪声数据过滤</strong></td>
+            <td>大规模对话中混有大量重复提问、纯情绪宣泄等无分析价值的噪声数据</td>
+            <td>
+              <span class="tag">语义相似度去重</span>
+              <span class="tag">有效会话筛选</span>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>异常聚类与归因</strong></td>
+            <td>大量Badcase中"同类问题指向不同知识条目"，需要精确定位问题根因（知识错误 vs 知识缺失 vs 结构缺陷）</td>
+            <td>
+              <span class="tag">多层级聚类算法</span>
+              <span class="tag amber">知识关联矩阵</span>
+              <span class="tag purple">根因自动推断</span>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>质量闭环优化</strong></td>
+            <td>从检测到修复再到效果验证，需要建立可量化的改进评估体系，确保每次优化迭代真正有效</td>
+            <td>
+              <span class="tag">效果评估指标体系</span>
+              <span class="tag green">修复ROI量化</span>
+              <span class="tag">持续监控机制</span>
+            </td>
+          </tr>
+          <tr>
+            <td><strong>人机协同决策</strong></td>
+            <td>哪些异常交给规则/LLM自动处理，哪些必须人工介入——分工边界的合理划定影响系统效率与质量</td>
+            <td>
+              <span class="tag">自动化-人工分工策略</span>
+              <span class="tag amber">认知负荷优化</span>
+              <span class="tag purple">决策质量评估</span>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+
+  <!-- ==================== 四、拟采用的研究方法 ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <span class="icon">⚙️</span>
+      <h2>四、拟采用的研究方法</h2>
+    </div>
+    <div class="section-body">
+
+      <div class="cols">
+        <div>
+          <h3 style="font-size:1rem;color:var(--accent);margin-bottom:10px;">数据驱动方法</h3>
+          <ul class="clean">
+            <li>基于大规模真实对话日志的实证分析</li>
+            <li>规则引擎 + LLM语义理解的混合检出</li>
+            <li>文本聚类与层次聚类相结合的多层级归因</li>
+            <li>知识图谱辅助的根因关联推理</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="font-size:1rem;color:var(--accent);margin-bottom:10px;">系统工程方法</h3>
+          <ul class="clean">
+            <li>质量闭环的全链路建模（检测→归因→修复→验证）</li>
+            <li>效果评估指标体系设计与实验验证</li>
+            <li>海量数据的ETL处理与增量索引策略</li>
+            <li>人机协同的效率与质量权衡分析</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="hl-box" style="margin-top:20px;">
+        <strong>研究特色：</strong>以真实工业场景为实证基础，强调<strong>工程问题的系统性建模</strong>——不局限于单一算法的优化，而是从全链路视角研究Agent输出质量管理的体系化方法。数据现成可获取，具备充分的实验对比条件。
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== 五、预期贡献 ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <span class="icon">📊</span>
+      <h2>五、预期研究贡献</h2>
+    </div>
+    <div class="section-body">
+
+      <table>
+        <thead>
+          <tr><th style="width:18%;">维度</th><th style="width:82%;">预期产出</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>理论贡献</strong></td>
+            <td>提出面向LLM Agent的对话质量异常检测与归因方法论，填补该领域在系统性质量管理框架方面的空白</td>
+          </tr>
+          <tr>
+            <td><strong>方法贡献</strong></td>
+            <td>构建多源特征融合的异常检测模型、多层级聚类归因算法，以及闭环优化的效果评估指标体系</td>
+          </tr>
+          <tr>
+            <td><strong>工程贡献</strong></td>
+            <td>在工业级客服Agent平台完成实证验证，产出可量化的检测效果数据（准确率、召回率、F1值等）与优化收益评估</td>
+          </tr>
+          <tr>
+            <td><strong>管理启示</strong></td>
+            <td>提炼人机协同质量管理的分工策略，为类似工业场景中的AI Agent质量治理提供可借鉴的实践经验</td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+  </div>
+
+  <!-- ==================== 六、个人工程实践基础 ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <span class="icon">🛠️</span>
+      <h2>六、个人工程实践基础</h2>
+    </div>
+    <div class="section-body">
+
+      <p>本研究课题源于本人在<strong>腾讯云智服·智能中台</strong>的实际后端开发工作，已积累以下工程实践基础：</p>
+
+      <div class="cols" style="margin-top:16px;">
+        <div>
+          <ul class="clean">
+            <li>Agent Badcase检出系统设计与开发</li>
+            <li>多检出器（规则+LLM）的并行部署与结果融合</li>
+            <li>日均200万+会话的ES聚合与Bulk写入优化</li>
+            <li>RAG知识从QA结构向QD结构的升级迁移</li>
+          </ul>
+        </div>
+        <div>
+          <ul class="clean">
+            <li>人工标注平台与Eval自动化评测框架搭建</li>
+            <li>裁判模型+用户模拟器的评测方案设计</li>
+            <li>Badcase聚类与知识关联关系的数据分析</li>
+            <li>Agent质量日报/周报的指标体系构建</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="hl-box">
+        <strong>数据可获取性：</strong>所有研究数据均来自已上线运行的工业系统，具备真实性与大规模特征，能够支撑充分的实验对比与实证分析。
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    课题介绍 · 面向LLM Agent的对话质量检测与优化研究 · 2026
+  </footer>
+
+</div>
+
+</body>
+</html>

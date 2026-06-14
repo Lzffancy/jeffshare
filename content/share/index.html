@@ -1,25 +1,176 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jeff Share</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            max-width: 720px;
-            margin: 60px auto;
-            padding: 0 20px;
-            line-height: 1.6;
-            color: #333;
-        }
-        h1 { color: #222; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        a { color: #007acc; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCUT MEM 论文工作台</title>
+<style>
+  :root {
+    --bg: #f0f2f5;
+    --text: #1a1a2e;
+    --sub: #5a6170;
+    --primary: #003087;
+    --accent: #e87722;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+    min-height: 100vh; display: flex; flex-direction: column;
+  }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, #0b1e3d 0%, #003087 40%, #1a5cb5 100%);
+    color: #fff; text-align: center; padding: 60px 24px 48px;
+    position: relative; overflow: hidden;
+  }
+  .hero::after {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(circle at 20% 80%, rgba(232,119,34,0.15) 0%, transparent 50%),
+                radial-gradient(circle at 75% 20%, rgba(37,99,235,0.2) 0%, transparent 50%);
+  }
+  .hero h1 { font-size: 2.2rem; font-weight: 800; position: relative; z-index: 1; letter-spacing: 0.02em; }
+  .hero .sub { font-size: 1.05rem; opacity: 0.8; margin-top: 8px; position: relative; z-index: 1; }
+  .hero .badge-row { margin-top: 18px; position: relative; z-index: 1; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .hero-badge {
+    display: inline-block; font-size: 0.78rem; padding: 5px 14px;
+    border-radius: 20px; background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(4px);
+  }
+
+  /* Cards grid */
+  .grid {
+    max-width: 960px; margin: -24px auto 0; padding: 0 20px 40px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;
+    position: relative; z-index: 2;
+  }
+
+  .card {
+    background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;
+    display: flex; flex-direction: column;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 24px rgba(0,0,0,0.10);
+  }
+  .card-img {
+    height: 140px; display: flex; align-items: center; justify-content: center;
+    font-size: 3rem; position: relative;
+  }
+  .card-img.c1 { background: linear-gradient(135deg, #e8f0fe 0%, #d4e4fc 100%); }
+  .card-img.c2 { background: linear-gradient(135deg, #fef3e2 0%, #fde8c8 100%); }
+  .card-img.c3 { background: linear-gradient(135deg, #f3e8ff 0%, #e2d4fc 100%); }
+  .card-img.c4 { background: linear-gradient(135deg, #e6f7f0 0%, #d0efe2 100%); }
+  .card-body { padding: 20px 24px 24px; flex: 1; display: flex; flex-direction: column; }
+  .card-body h2 { font-size: 1.15rem; color: var(--primary); margin-bottom: 6px; }
+  .card-body p { font-size: 0.88rem; color: var(--sub); line-height: 1.6; flex: 1; }
+  .card-body .tags { margin: 12px 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .ctag {
+    display: inline-block; font-size: 0.72rem; padding: 2px 8px;
+    border-radius: 6px; background: #e8f4fd; color: #0277bd; font-weight: 500;
+  }
+  .ctag.warm { background: #fff3e0; color: #e65100; }
+
+  .btn {
+    display: inline-block; margin-top: 12px; padding: 10px 22px;
+    border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-decoration: none;
+    text-align: center; transition: background 0.2s, color 0.2s;
+  }
+  .btn-primary {
+    background: var(--primary); color: #fff;
+  }
+  .btn-primary:hover { background: #002670; }
+  .btn-outline {
+    background: #fff; color: var(--primary); border: 1.5px solid var(--primary);
+  }
+  .btn-outline:hover { background: #e8f0fe; }
+
+  /* Footer */
+  footer {
+    text-align: center; padding: 24px 16px; font-size: 0.78rem;
+    color: var(--sub); margin-top: auto; border-top: 1px solid #e2e8f0;
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .hero { padding: 40px 16px 32px; }
+    .hero h1 { font-size: 1.5rem; }
+    .hero .sub { font-size: 0.88rem; }
+    .grid { grid-template-columns: 1fr; gap: 16px; padding: 0 14px 32px; }
+    .card-img { height: 100px; font-size: 2.2rem; }
+    .card-body { padding: 16px 18px 18px; }
+    .card-body h2 { font-size: 1.05rem; }
+  }
+</style>
 </head>
 <body>
-    <h1>📁 Jeff Share</h1>
-    <p>这里是共享文件目录。通过 Git 上传 HTML 文件到此目录即可自动发布。</p>
-    <p><a href="/">← 返回首页</a></p>
+
+<div class="hero">
+  <h1>华南理工大学 · MEM 论文工作台</h1>
+  <p class="sub">工程管理硕士（MEM）学位论文研究配套工具</p>
+  <div class="badge-row">
+    <span class="hero-badge">📚 导师论文检索</span>
+    <span class="hero-badge">🎯 论文方向分析</span>
+    <span class="hero-badge">📋 导师Brief策略</span>
+    <span class="hero-badge">📊 工商管理学院</span>
+  </div>
+</div>
+
+<div class="grid">
+  <!-- 卡片1：导师论文搜索 -->
+  <a href="daoshilunwensousuobaogao.html" class="card" style="text-decoration:none;color:inherit;">
+    <div class="card-img c1">📚</div>
+    <div class="card-body">
+      <h2>导师论文搜索报告</h2>
+      <p>华南理工大学工商管理学院 9 位导师的论文发表信息汇总，涵盖工业工程系、管理学系、决策科学系、技术经济与管理系四个系别。</p>
+      <div class="tags">
+        <span class="ctag">9位导师</span>
+        <span class="ctag">SCI/SSCI/CSSCI</span>
+        <span class="ctag warm">UTD-24</span>
+        <span class="ctag">4个系别</span>
+      </div>
+      <span class="btn btn-primary">查看报告 →</span>
+    </div>
+  </a>
+
+  <!-- 卡片2：论文方向分析 -->
+  <a href="lunwenfangxiangfenxi.html" class="card" style="text-decoration:none;color:inherit;">
+    <div class="card-img c2">🎯</div>
+    <div class="card-body">
+      <h2>论文方向分析</h2>
+      <p>基于腾讯客服 Agent 平台的 Badcase 检测与闭环优化工程实践，结合 MEM 课程体系，提出 6 个论文选题方向及导师匹配建议。</p>
+      <div class="tags">
+        <span class="ctag">6个方向</span>
+        <span class="ctag warm">导师匹配</span>
+        <span class="ctag">质量管理</span>
+        <span class="ctag">人机协同</span>
+      </div>
+      <span class="btn btn-outline">查看分析 →</span>
+    </div>
+  </a>
+
+  <!-- 卡片3：课题研究介绍 -->
+  <a href="ketiyanjiujieshao.html" class="card" style="text-decoration:none;color:inherit;">
+    <div class="card-img c4">🔬</div>
+    <div class="card-body">
+      <h2>课题研究介绍</h2>
+      <p>面向LLM Agent的对话质量检测与优化研究，基于工业级客服Agent平台，研究Badcase自动检出、聚类归因与闭环优化方法。</p>
+      <div class="tags">
+        <span class="ctag">LLM Agent</span>
+        <span class="ctag warm">质量检测</span>
+        <span class="ctag">多源融合</span>
+        <span class="ctag">闭环优化</span>
+      </div>
+      <span class="btn btn-outline">查看介绍 →</span>
+    </div>
+  </a>
+</div>
+
+<footer>
+  SCUT MEM 论文工作台 &nbsp;|&nbsp; 李卓凡 &nbsp;|&nbsp; 2026-06-13
+</footer>
+
 </body>
 </html>
