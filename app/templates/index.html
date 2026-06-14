@@ -1,44 +1,85 @@
 {% extends "base.html" %}
 {% block title %}首页 — Jeff 的工作台{% endblock %}
 {% block content %}
-<section class="hero">
-    <h1>👋 欢迎 👋</h1>
-    <p>个人博客文章与研究报告展示。</p>
-</section>
 
-<section class="posts-preview">
-    <h2>📝 最新文章</h2>
+<div class="hero">
+    <h1>👋 欢迎来到 Jeff 的工作台</h1>
+    <p>个人博客文章 · 研究报告 · 论文工作台</p>
+</div>
+
+<div class="home-grid">
+    <!-- 博客文章卡片 -->
+    <div class="section-header">
+        <h2>📝 最新文章</h2>
+    </div>
     {% if posts %}
-    <ul class="post-list">
+    <div class="card-grid">
         {% for p in posts %}
-        <li>
-            <a href="/blog/{{ p.slug }}">{{ p.title }}</a>
-            <span class="meta">{{ p.date }}</span>
-            {% if p.tags %}
-            <span class="tags">
-                {% for t in p.tags %}<span class="tag">{{ t }}</span>{% endfor %}
-            </span>
-            {% endif %}
-        </li>
+        <a href="/blog/{{ p.slug }}" class="card" style="text-decoration:none;color:inherit;">
+            <div class="card-img c{{ loop.cycle('1','2','3','4') }}">📝</div>
+            <div class="card-body">
+                <h2>{{ p.title }}</h2>
+                <p style="font-size:0.85rem;color:var(--sub);">{{ p.date }}</p>
+                {% if p.tags %}
+                <div class="tags">
+                    {% for t in p.tags %}<span class="tag">{{ t }}</span>{% endfor %}
+                </div>
+                {% endif %}
+                <span class="btn btn-primary">阅读文章 →</span>
+            </div>
+        </a>
         {% endfor %}
-    </ul>
-    <p><a href="/blog">→ 全部文章</a></p>
+    </div>
+    <div style="text-align:center;margin-top:20px;">
+        <a href="/blog" class="btn btn-outline">→ 查看全部文章</a>
+    </div>
     {% else %}
-    <p class="empty">还没有文章。</p>
+    <p class="empty" style="padding:0 20px;">还没有文章，在 content/posts/ 下新建 .md 文件即可发布。</p>
     {% endif %}
-</section>
 
-<section class="reports-preview">
-    <h2>📊 研究报告</h2>
+    <!-- 研究报告卡片 -->
+    <div class="section-header">
+        <h2>📊 研究报告</h2>
+    </div>
     {% if reports %}
-    <ul>
+    <div class="card-grid">
         {% for r in reports %}
-        <li><a href="/reports/files/{{ r.name }}/">{{ r.name }}</a></li>
+        <a href="/reports/files/{{ r.name }}/" class="card" style="text-decoration:none;color:inherit;">
+            <div class="card-img c{{ loop.cycle('2','3','4','1') }}">📊</div>
+            <div class="card-body">
+                <h2>{{ r.name }}</h2>
+                <p>{{ r.files|length }} 个文件</p>
+                <span class="btn btn-outline">查看报告 →</span>
+            </div>
+        </a>
         {% endfor %}
-    </ul>
-    <p><a href="/reports">→ 全部报告</a></p>
+    </div>
+    <div style="text-align:center;margin-top:20px;">
+        <a href="/reports" class="btn btn-outline">→ 查看全部报告</a>
+    </div>
     {% else %}
-    <p class="empty">还没有报告。</p>
+    <p class="empty" style="padding:0 20px;">还没有报告。</p>
     {% endif %}
-</section>
+
+    <!-- Share 工作台卡片 -->
+    <div class="section-header">
+        <h2>📁 论文工作台</h2>
+    </div>
+    <div class="card-grid">
+        <a href="/share/" class="card" style="text-decoration:none;color:inherit;">
+            <div class="card-img c1">📚</div>
+            <div class="card-body">
+                <h2>SCUT MEM 论文工作台</h2>
+                <p>华南理工大学工程管理硕士（MEM）学位论文研究配套工具，包含导师论文检索、论文方向分析、课题研究介绍。</p>
+                <div class="tags">
+                    <span class="tag">导师论文</span>
+                    <span class="tag">方向分析</span>
+                    <span class="tag warm">课题研究</span>
+                </div>
+                <span class="btn btn-primary">进入工作台 →</span>
+            </div>
+        </a>
+    </div>
+</div>
+
 {% endblock %}

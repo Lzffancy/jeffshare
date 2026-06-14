@@ -1,17 +1,29 @@
 {% extends "base.html" %}
 {% block title %}Reports — Jeff 的工作台{% endblock %}
 {% block content %}
-<h1>📊 研究报告</h1>
+
+<div class="hero">
+    <h1>📊 研究报告</h1>
+    <p>研究报告展示</p>
+</div>
+
+<div class="home-grid">
 {% if reports %}
-<ul>
+<div class="card-grid">
     {% for r in reports %}
-    <li>
-        <a href="/reports/files/{{ r.name }}/">{{ r.name }}</a>
-        <span class="meta">({{ r.files | length }} 个文件)</span>
-    </li>
+    <a href="/reports/files/{{ r.name }}/" class="card" style="text-decoration:none;color:inherit;">
+        <div class="card-img c{{ loop.cycle('2','3','4','1') }}">📊</div>
+        <div class="card-body">
+            <h2>{{ r.name }}</h2>
+            <p>{{ r.files|length }} 个文件</p>
+            <span class="btn btn-primary">查看报告 →</span>
+        </div>
+    </a>
     {% endfor %}
-</ul>
+</div>
 {% else %}
-<p class="empty">还没有报告。</p>
+<p class="empty" style="padding:0 20px;">还没有报告，在 content/reports/ 下新建目录即可。</p>
 {% endif %}
+</div>
+
 {% endblock %}

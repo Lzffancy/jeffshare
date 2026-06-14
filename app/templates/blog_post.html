@@ -1,21 +1,26 @@
 {% extends "base.html" %}
 {% block title %}{{ post.title }} — Blog{% endblock %}
 {% block content %}
-<article>
-    <header>
-        <h1>{{ post.title }}</h1>
-        <div class="meta">
-            <time>{{ post.date }}</time>
-            {% if post.tags %}
-            <span class="tags">
-                {% for t in post.tags %}<span class="tag">{{ t }}</span>{% endfor %}
-            </span>
-            {% endif %}
-        </div>
-    </header>
+
+<div class="hero">
+    <h1>{{ post.title }}</h1>
+    <p>
+        <time>{{ post.date }}</time>
+        {% if post.tags %}
+        <span class="tags" style="margin-top:8px;display:block;">
+            {% for t in post.tags %}<span class="tag">{{ t }}</span>{% endfor %}
+        </span>
+        {% endif %}
+    </p>
+</div>
+
+<article style="max-width:800px;margin:0 auto;padding:24px 20px 40px;">
     <div class="post-content">
         {{ html | safe }}
     </div>
+    <p style="margin-top:24px;">
+        <a href="/blog" class="btn btn-outline">← 返回文章列表</a>
+    </p>
 </article>
-<p><a href="/blog">← 返回文章列表</a></p>
+
 {% endblock %}

@@ -14,14 +14,13 @@
                 <a href="/">首页</a>
                 <a href="/blog">Blog</a>
                 <a href="/reports">Reports</a>
+                <a href="/share/">Share</a>
             </div>
         </div>
     </nav>
-    <main>
-        {% block content %}{% endblock %}
-    </main>
+    {% block content %}{% endblock %}
     <footer>
-        <p>Built with FastAPI &mdash; {{ request.url.hostname }}</p>
+        Built with FastAPI &mdash; {{ request.url.hostname }}
     </footer>
 </body>
 </html>
