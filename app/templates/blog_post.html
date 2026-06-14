@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} — Blog{% endblock %}
+{% block content %}
+<article>
+    <header>
+        <h1>{{ post.title }}</h1>
+        <div class="meta">
+            <time>{{ post.date }}</time>
+            {% if post.tags %}
+            <span class="tags">
+                {% for t in post.tags %}<span class="tag">{{ t }}</span>{% endfor %}
+            </span>
+            {% endif %}
+        </div>
+    </header>
+    <div class="post-content">
+        {{ html | safe }}
+    </div>
+</article>
+<p><a href="/blog">← 返回文章列表</a></p>
+{% endblock %}

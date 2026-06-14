@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Jeff 的工作台{% endblock %}</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav>
+        <div class="nav-inner">
+            <a href="/" class="brand">🏠 Jeff 的工作台</a>
+            <div class="nav-links">
+                <a href="/">首页</a>
+                <a href="/blog">Blog</a>
+                <a href="/reports">Reports</a>
+            </div>
+        </div>
+    </nav>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    <footer>
+        <p>Built with FastAPI &mdash; {{ request.url.hostname }}</p>
+    </footer>
+</body>
+</html>

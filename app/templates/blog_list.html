@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Blog — Jeff 的工作台{% endblock %}
+{% block content %}
+<h1>📝 文章列表</h1>
+{% if posts %}
+<ul class="post-list">
+    {% for p in posts %}
+    <li>
+        <a href="/blog/{{ p.slug }}">{{ p.title }}</a>
+        <span class="meta">{{ p.date }}</span>
+        {% if p.tags %}
+        <span class="tags">
+            {% for t in p.tags %}<span class="tag">{{ t }}</span>{% endfor %}
+        </span>
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="empty">还没有文章。</p>
+{% endif %}
+{% endblock %}

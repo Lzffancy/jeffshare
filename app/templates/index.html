@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}首页 — Jeff 的工作台{% endblock %}
+{% block content %}
+<section class="hero">
+    <h1>👋 欢迎</h1>
+    <p>个人博客文章与研究报告展示。</p>
+</section>
+
+<section class="posts-preview">
+    <h2>📝 最新文章</h2>
+    {% if posts %}
+    <ul class="post-list">
+        {% for p in posts %}
+        <li>
+            <a href="/blog/{{ p.slug }}">{{ p.title }}</a>
+            <span class="meta">{{ p.date }}</span>
+            {% if p.tags %}
+            <span class="tags">
+                {% for t in p.tags %}<span class="tag">{{ t }}</span>{% endfor %}
+            </span>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    <p><a href="/blog">→ 全部文章</a></p>
+    {% else %}
+    <p class="empty">还没有文章。</p>
+    {% endif %}
+</section>
+
+<section class="reports-preview">
+    <h2>📊 研究报告</h2>
+    {% if reports %}
+    <ul>
+        {% for r in reports %}
+        <li><a href="/reports/files/{{ r.name }}/">{{ r.name }}</a></li>
+        {% endfor %}
+    </ul>
+    <p><a href="/reports">→ 全部报告</a></p>
+    {% else %}
+    <p class="empty">还没有报告。</p>
+    {% endif %}
+</section>
+{% endblock %}

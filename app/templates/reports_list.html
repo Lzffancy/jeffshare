@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Reports — Jeff 的工作台{% endblock %}
+{% block content %}
+<h1>📊 研究报告</h1>
+{% if reports %}
+<ul>
+    {% for r in reports %}
+    <li>
+        <a href="/reports/files/{{ r.name }}/">{{ r.name }}</a>
+        <span class="meta">({{ r.files | length }} 个文件)</span>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="empty">还没有报告。</p>
+{% endif %}
+{% endblock %}
