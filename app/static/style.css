@@ -9,7 +9,7 @@
     --accent: #e87722;
 }
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -76,32 +76,53 @@ nav .brand {
     z-index: 1;
     letter-spacing: 0.02em;
 }
-.hero p {
+.hero .sub {
     font-size: 1.05rem;
     opacity: 0.8;
     margin-top: 8px;
     position: relative;
     z-index: 1;
 }
+.hero p {
+    position: relative;
+    z-index: 1;
+}
+.hero .badge-row {
+    margin-top: 18px;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.hero-badge {
+    display: inline-block;
+    font-size: 0.78rem;
+    padding: 5px 14px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    backdrop-filter: blur(4px);
+}
 
-/* ---- Content ---- */
-main {
+/* ---- Cards grid ---- */
+.grid {
     max-width: 960px;
-    margin: 0 auto;
+    margin: -24px auto 0;
     padding: 0 20px 40px;
-    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    position: relative;
+    z-index: 2;
 }
-.home-grid {
-    margin-top: -24px;
-    padding: 0 20px 40px;
-}
-
-/* ---- Cards ---- */
 .card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 24px;
 }
+
 .card {
     background: #fff;
     border-radius: 16px;
@@ -127,11 +148,17 @@ main {
 .card-img.c2 { background: linear-gradient(135deg, #fef3e2 0%, #fde8c8 100%); }
 .card-img.c3 { background: linear-gradient(135deg, #f3e8ff 0%, #e2d4fc 100%); }
 .card-img.c4 { background: linear-gradient(135deg, #e6f7f0 0%, #d0efe2 100%); }
-.card-body { padding: 20px 24px 24px; flex: 1; display: flex; flex-direction: column; }
+.card-body {
+    padding: 20px 24px 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
 .card-body h2 { font-size: 1.15rem; color: var(--primary); margin-bottom: 6px; }
 .card-body p { font-size: 0.88rem; color: var(--sub); line-height: 1.6; flex: 1; }
 .card-body .tags { margin: 12px 0; display: flex; flex-wrap: wrap; gap: 6px; }
 
+/* ---- Tags ---- */
 .tag {
     display: inline-block;
     font-size: 0.72rem;
@@ -142,7 +169,18 @@ main {
     font-weight: 500;
 }
 .tag.warm { background: #fff3e0; color: #e65100; }
+.ctag {
+    display: inline-block;
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    border-radius: 6px;
+    background: #e8f4fd;
+    color: #0277bd;
+    font-weight: 500;
+}
+.ctag.warm { background: #fff3e0; color: #e65100; }
 
+/* ---- Buttons ---- */
 .btn {
     display: inline-block;
     margin-top: 12px;
@@ -162,16 +200,6 @@ main {
     border: 1.5px solid var(--primary);
 }
 .btn-outline:hover { background: #e8f0fe; }
-
-/* ---- Section headers ---- */
-.section-header {
-    margin: 36px 0 16px;
-    padding: 0 20px;
-}
-.section-header h2 {
-    font-size: 1.3rem;
-    color: var(--primary);
-}
 
 /* ---- Post list ---- */
 .post-list { list-style: none; }
@@ -230,11 +258,21 @@ footer {
 @media (max-width: 768px) {
     .hero { padding: 40px 16px 32px; }
     .hero h1 { font-size: 1.5rem; }
-    .hero p { font-size: 0.88rem; }
+    .hero .sub { font-size: 0.88rem; }
+    .hero .badge-row { gap: 6px; margin-top: 12px; }
+    .hero-badge { font-size: 0.7rem; padding: 4px 10px; }
+
+    .grid { grid-template-columns: 1fr; gap: 16px; padding: 0 14px 32px; }
     .card-grid { grid-template-columns: 1fr; gap: 16px; }
+
     .card-img { height: 100px; font-size: 2.2rem; }
     .card-body { padding: 16px 18px 18px; }
     .card-body h2 { font-size: 1.05rem; }
-    nav { padding: 0 1rem; }
-    .nav-links { gap: 1rem; }
+
+    nav { padding: 0 0.75rem; }
+    nav .brand { font-size: 0.9rem; }
+    .nav-links { gap: 0.7rem; }
+    .nav-links a { font-size: 0.8rem; }
+
+    footer { padding: 18px 12px; font-size: 0.72rem; }
 }

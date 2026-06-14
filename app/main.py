@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from datetime import date
 from fastapi import FastAPI, Request, HTTPException
@@ -5,6 +6,26 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from markdown_it import MarkdownIt
 import frontmatter
+
+
+def plain_preview(md_text: str, max_len: int = 120) -> str:
+    """Strip markdown formatting to produce a plain-text preview."""
+    # Remove code blocks
+    text = re.sub(r'```[\s\S]*?```', '', md_text)
+    # Remove inline code
+    text = re.sub(r'`[^`]+`', '', text)
+    # Remove images
+    text = re.sub(r'!\[.*?\]\(.*?\)', '', text)
+    # Remove links, keep text
+    text = re.sub(r'\[([^\]]*)\]\(.*?\)', r'\1', text)
+    # Remove headings markers, bold/italic markers
+    text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
+    text = re.sub(r'\*{1,3}([^*]+)\*{1,3}', r'\1', text)
+    # Collapse whitespace
+    text = re.sub(r'\s+', ' ', text).strip()
+    if len(text) > max_len:
+        text = text[:max_len].rsplit(' ', 1)[0] + '…'
+    return text
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 CONTENT_DIR = BASE_DIR / "content"
@@ -31,14 +52,17 @@ def load_posts():
                 "date": post.get("date", date.today()),
                 "tags": post.get("tags", []),
                 "content": post.content,
+                "preview": plain_preview(post.content),
             })
         except Exception:
+            raw = f.read_text(encoding="utf-8")
             posts.append({
                 "slug": f.stem,
                 "title": f.stem,
                 "date": date.today(),
                 "tags": [],
-                "content": f.read_text(encoding="utf-8"),
+                "content": raw,
+                "preview": plain_preview(raw),
             })
     return sorted(posts, key=lambda p: p["date"], reverse=True)
 

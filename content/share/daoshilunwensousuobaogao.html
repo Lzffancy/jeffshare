@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>华南理工大学工商管理学院 — 导师论文搜索报告</title>
+  <style>
+    :root {
+      --primary: #003087;
+      --accent: #e87722;
+      --bg: #f5f7fa;
+      --card: #ffffff;
+      --border: #dde3ec;
+      --text: #2c3e50;
+      --sub: #6b7a8d;
+      --tag-ie: #e3f0ff;
+      --tag-ds: #fff3e0;
+      --tag-mg: #e8f5e9;
+      --tag-te: #fce4ec;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Segoe UI", "PingFang SC", "Helvetica Neue", sans-serif;
+           background: var(--bg); color: var(--text); line-height: 1.7; }
+    header {
+      background: linear-gradient(135deg, var(--primary) 0%, #005bac 100%);
+      color: #fff; padding: 36px 48px;
+    }
+    header h1 { font-size: 1.9rem; font-weight: 700; }
+    header p { margin-top: 6px; font-size: 0.95rem; opacity: 0.85; }
+    .stats-bar {
+      background: var(--accent); color: #fff;
+      display: flex; gap: 40px; padding: 14px 48px; flex-wrap: wrap;
+    }
+    .stat { text-align: center; }
+    .stat .num { font-size: 1.6rem; font-weight: 700; }
+    .stat .lbl { font-size: 0.8rem; opacity: 0.9; }
+    main { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+    .toc { background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+           padding: 20px 28px; margin-bottom: 32px; }
+    .toc h2 { font-size: 1rem; color: var(--sub); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .toc ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px 20px; }
+    .toc a { color: var(--primary); text-decoration: none; font-size: 0.95rem; }
+    .toc a:hover { text-decoration: underline; }
+
+    .dept-label {
+      display: inline-block; font-size: 0.75rem; font-weight: 600;
+      padding: 2px 10px; border-radius: 12px; margin-right: 8px;
+    }
+    .dept-ie  { background: var(--tag-ie); color: #1565c0; }
+    .dept-ds  { background: var(--tag-ds); color: #bf360c; }
+    .dept-mg  { background: var(--tag-mg); color: #2e7d32; }
+    .dept-te  { background: var(--tag-te); color: #ad1457; }
+
+    .teacher-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; margin-bottom: 32px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.05);
+      overflow: hidden;
+    }
+    .card-header {
+      background: linear-gradient(90deg, #f0f4fb 0%, #fff 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 18px 28px; display: flex; align-items: center; gap: 16px;
+    }
+    .card-header .avatar {
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--primary); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; font-weight: 700; flex-shrink: 0;
+    }
+    .card-header .info h2 { font-size: 1.2rem; color: var(--primary); }
+    .card-header .info .meta { font-size: 0.85rem; color: var(--sub); margin-top: 3px; }
+    .card-header .tags { margin-left: auto; text-align: right; }
+    .rank-tag {
+      display: inline-block; font-size: 0.75rem; font-weight: 600;
+      padding: 3px 12px; border-radius: 12px; background: #e8eaf6; color: #3949ab;
+      margin-bottom: 4px;
+    }
+
+    .card-body { padding: 20px 28px; }
+    .card-body h3 {
+      font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--sub); margin: 16px 0 8px;
+    }
+    .card-body h3:first-child { margin-top: 0; }
+    .research-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+    .rtag {
+      background: #e8f4fd; color: #0277bd;
+      font-size: 0.82rem; padding: 4px 12px; border-radius: 20px;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 8px; }
+    th { background: #f0f4fb; color: var(--primary); font-weight: 600;
+         padding: 8px 12px; text-align: left; border-bottom: 2px solid var(--border); }
+    td { padding: 8px 12px; border-bottom: 1px solid #f0f4fb; vertical-align: top; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafcff; }
+    .badge {
+      display: inline-block; font-size: 0.72rem; font-weight: 700;
+      padding: 2px 7px; border-radius: 8px; white-space: nowrap;
+    }
+    .sci   { background: #fff3e0; color: #e65100; }
+    .ssci  { background: #e8f5e9; color: #1b5e20; }
+    .cssci { background: #e3f0ff; color: #0d47a1; }
+    .ei    { background: #f3e5f5; color: #6a1b9a; }
+    .utd24 { background: #ffe0b2; color: #bf360c; font-weight: 800; border: 1px solid #ff9800; }
+    .q1    { background: #e8f5e9; color: #1b5e20; }
+
+    .contact-row { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 10px; }
+    .contact-item { font-size: 0.85rem; color: var(--sub); }
+    .contact-item a { color: var(--primary); text-decoration: none; }
+
+    /* 论文标题超链接 */
+    td.paper-title a {
+      color: var(--text); text-decoration: none;
+      border-bottom: 1px dashed #c0c8d4;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    td.paper-title a:hover {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    td.paper-title a::after {
+      content: " 🔗";
+      font-size: 0.7rem; opacity: 0;
+      transition: opacity 0.2s;
+    }
+    td.paper-title a:hover::after { opacity: 0.6; }
+
+    /* 数据来源链接 */
+    .source-link {
+      display: inline-block; font-size: 0.8rem; color: var(--primary);
+      text-decoration: none; margin-right: 16px; padding: 2px 0;
+      border-bottom: 1px solid transparent; transition: border-color 0.2s;
+    }
+    .source-link:hover { border-bottom-color: var(--primary); }
+    .source-badge {
+      display: inline-block; font-size: 0.72rem; padding: 2px 8px;
+      border-radius: 8px; background: #e3f0ff; color: #0d47a1; margin-right: 6px;
+    }
+
+    footer { text-align: center; font-size: 0.8rem; color: var(--sub);
+             padding: 24px; border-top: 1px solid var(--border); margin-top: 16px; }
+
+    /* ===== 移动端适配 ===== */
+    @media (max-width: 768px) {
+      header { padding: 24px 20px; }
+      header h1 { font-size: 1.3rem; }
+      header p { font-size: 0.82rem; }
+
+      .stats-bar { gap: 16px; padding: 12px 20px; justify-content: center; }
+      .stat .num { font-size: 1.2rem; }
+      .stat .lbl { font-size: 0.7rem; }
+
+      main { padding: 20px 12px; }
+      .toc { padding: 14px 16px; }
+      .toc ul { flex-direction: column; gap: 4px; }
+
+      /* 导师卡片：头像+信息+标签 垂直堆叠 */
+      .card-header {
+        flex-direction: column; align-items: flex-start; gap: 10px;
+        padding: 14px 16px;
+      }
+      .card-header .tags { margin-left: 0; text-align: left; width: 100%; }
+      .card-body { padding: 14px 16px; }
+
+      /* 表格：横向滚动 */
+      .card-body {
+        overflow-x: hidden; /* 父级不滚动 */
+      }
+      .table-wrap {
+        width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;
+        margin: 8px 0;
+      }
+      table { font-size: 0.78rem; min-width: 600px; }
+      th, td { padding: 6px 8px; }
+      .badge { font-size: 0.68rem; padding: 1px 5px; }
+
+      .research-tags { gap: 5px; }
+      .rtag { font-size: 0.74rem; padding: 3px 9px; }
+
+      .contact-row { flex-direction: column; gap: 6px; }
+      .source-link { margin-right: 8px; font-size: 0.75rem; }
+
+      footer { padding: 16px 12px; font-size: 0.72rem; }
+    }
+
+    @media (max-width: 480px) {
+      header h1 { font-size: 1.15rem; }
+      .stats-bar { gap: 10px; }
+      .stat .num { font-size: 1.05rem; }
+      table { font-size: 0.73rem; min-width: 520px; }
+      th, td { padding: 5px 6px; }
+      .card-header .avatar { width: 40px; height: 40px; font-size: 1.1rem; }
+      .card-header .info h2 { font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>华南理工大学工商管理学院 — 导师论文搜索报告</h1>
+  <p>数据来源：华南理工大学官网、百度学术、万方数据、期刊官网 &nbsp;|&nbsp; 生成时间：2026年6月13日</p>
+</header>
+
+<div class="stats-bar">
+  <div class="stat"><div class="num">9</div><div class="lbl">位导师</div></div>
+  <div class="stat"><div class="num">4</div><div class="lbl">所在系</div></div>
+  <div class="stat"><div class="num">7</div><div class="lbl">教授/副教授</div></div>
+  <div class="stat"><div class="num">UTD·FT50</div><div class="lbl">最高收录级别</div></div>
+</div>
+
+<main>
+
+  <!-- 目录 -->
+  <div class="toc">
+    <h2>导航目录</h2>
+    <ul>
+      <li><a href="#yujj">余建军</a></li>
+      <li><a href="#waiah">王爱虎</a></li>
+      <li><a href="#wanghl">王红丽</a></li>
+      <li><a href="#zhangf">张峰</a></li>
+      <li><a href="#laica">赖朝安</a></li>
+      <li><a href="#liuxl">刘小龙</a></li>
+      <li><a href="#liuyj">刘勇军</a></li>
+      <li><a href="#huangwx">黄伟祥</a></li>
+      <li><a href="#zhuangd">庄东</a></li>
+    </ul>
+  </div>
+
+  <!-- =========================================================
+       1. 余建军
+  ========================================================= -->
+  <div class="teacher-card" id="yujj">
+    <div class="card-header">
+      <div class="avatar">余</div>
+      <div class="info">
+        <h2>余建军</h2>
+        <div class="meta">
+          <span class="dept-label dept-ie">工业工程系</span>副教授 · 硕导 · 副系主任
+        </div>
+      </div>
+      <div class="tags">
+        <div class="rank-tag">副教授</div>
+        <div style="font-size:0.78rem;color:var(--sub)">yujj@scut.edu.cn</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>研究方向</h3>
+      <div class="research-tags">
+        <span class="rtag">运作管理</span>
+        <span class="rtag">供应链管理</span>
+        <span class="rtag">项目管理</span>
+        <span class="rtag">先进制造系统</span>
+        <span class="rtag">生产调度优化</span>
+      </div>
+
+      <h3>代表性论文</h3>
+      <table>
+        <thead>
+          <tr><th>#</th><th>论文标题</th><th>期刊</th><th>年份</th><th>收录</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>The Principal-agent Leasing Model of "Company+Farmers" under two Division Modes</td>
+            <td><em>Sustainability</em></td>
+            <td>2018</td>
+            <td><span class="badge sci">SCI</span></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>An Empirical Research on Marketing Strategies of Different Risk Preference Merchant</td>
+            <td><em>Mathematical Problems in Engineering</em></td>
+            <td>2018</td>
+            <td><span class="badge sci">SCI</span></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>A hybrid ant colony algorithm for U-line balancing and rebalancing in just-in-time production environment</td>
+            <td><em>Journal of Manufacturing Systems</em></td>
+            <td>2014</td>
+            <td><span class="badge sci">SCI</span></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>Order decision making based on different statement strategies under stochastic market demand</td>
+            <td><em>Journal of Systems Science and Systems Engineering</em></td>
+            <td>2013</td>
+            <td><span class="badge sci">SCI</span></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>基于委托代理理论的"公司+农户"租赁模式分析</td>
+            <td>《运筹与管理》</td>
+            <td>2018</td>
+            <td><span class="badge cssci">CSSCI</span></td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>Research on Optimal Production Decision for Company+Farmer Based on Farmland Leasing Model</td>
+            <td><em>International Journal of Inventory Research</em></td>
+            <td>2018</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>主持基金项目（代表）</h3>
+      <table>
+        <thead><tr><th>项目名称</th><th>来源</th><th>时间</th></tr></thead>
+        <tbody>
+          <tr><td>考虑不确定因素的化工批处理生产过程调度研究</td><td>国家自然科学基金</td><td>2014–2016</td></tr>
+          <tr><td>基于免疫算法的分布式调度管理研究</td><td>教育部人文社科基金</td><td>2008–2010</td></tr>
+          <tr><td>模糊条件下生产调度研究</td><td>教育部博士点基金</td><td>2011–2013</td></tr>
+        </tbody>
+      </table>
+
+      <h3>📎 数据来源</h3>
+      <div style="margin-top:6px;">
+        <a class="source-link" href="https://cnsba.scut.edu.cn/2020/0312/c24831a366252/page.htm" target="_blank" title="华南理工大学官网 — 余建军个人主页">🖥 华工官网个人主页</a>
+        <span style="font-size:0.75rem;color:var(--sub)">（论文列表、研究方向和基金项目均来自此页面）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       2. 王爱虎
+  ========================================================= -->
+  <div class="teacher-card" id="waiah">
+    <div class="card-header">
+      <div class="avatar">王</div>
+      <div class="info">
+        <h2>王爱虎</h2>
+        <div class="meta">
+          <span class="dept-label dept-ie">工业工程系</span>教授 · 博导 · 物流与供应链管理研究中心主任
+        </div>
+      </div>
+      <div class="tags">
+        <div class="rank-tag">教授</div>
+        <div style="font-size:0.78rem;color:var(--sub)">bmawang@scut.edu.cn</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>研究方向</h3>
+      <div class="research-tags">
+        <span class="rtag">国际物流管理</span>
+        <span class="rtag">供应链管理</span>
+        <span class="rtag">产品研发管理</span>
+        <span class="rtag">工业工程</span>
+        <span class="rtag">复杂装配产品变形设计</span>
+      </div>
+
+      <h3>代表性论文（SCI/EI 期刊）</h3>
+      <table>
+        <thead><tr><th>#</th><th>论文标题</th><th>期刊</th><th>年份</th><th>收录</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Complex Assembly Variant Design in Agile Manufacturing. Part I: System Architecture and Assembly Modeling Methodology</td>
+            <td><em>IIE Transactions on Design and Manufacturing</em></td>
+            <td>2005</td>
+            <td><span class="badge sci">SCI</span><span class="badge ei">EI</span></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Complex Assembly Variant Design in Agile Manufacturing. Part II: Assembly Variant Design Methodology</td>
+            <td><em>IIE Transactions on Design and Manufacturing</em></td>
+            <td>2005</td>
+            <td><span class="badge sci">SCI</span><span class="badge ei">EI</span></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>敏捷制造环境下装配产品变形设计方法</td>
+            <td>《计算机集成制造系统—CIMS》</td>
+            <td>2004</td>
+            <td><span class="badge ei">EI</span></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>中国吸引跨国外包的经济环境和政策研究</td>
+            <td>《经济研究》</td>
+            <td>2006</td>
+            <td><span class="badge cssci">CSSCI</span></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>广东省吸引跨国公司业务外包的工业投资环境和政策研究</td>
+            <td>《国际贸易探索》</td>
+            <td>2006</td>
+            <td><span class="badge cssci">CSSCI</span></td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>基于产权理论的业务外包模式研究</td>
+            <td>《管理现代化》</td>
+            <td>2006</td>
+            <td><span class="badge cssci">CSSCI</span></td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>交通路网中的布雷斯悖论及其无秩序代价研究</td>
+            <td>《工业工程》</td>
+            <td>2022</td>
+            <td>核心期刊</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>著作</h3>
+      <table>
+        <thead><tr><th>书名</th><th>出版社</th><th>年份</th></tr></thead>
+        <tbody>
+          <tr><td>《工业工程专业英语》（修订版，高等学校规划教材）</td><td>北京理工大学出版社</td><td>2006</td></tr>
+          <tr><td>《物流与供应链管理专业英语》</td><td>北京理工大学出版社</td><td>2006</td></tr>
+        </tbody>
+      </table>
+
+      <h3>📎 数据来源</h3>
+      <div style="margin-top:6px;">
+        <a class="source-link" href="https://cnsba.scut.edu.cn/2020/0312/c24832a366205/page.htm" target="_blank" title="华南理工大学官网 — 王爱虎个人主页">🖥 华工官网个人主页</a>
+        <span style="font-size:0.75rem;color:var(--sub)">（论文列表、科研项目和著作均来自此页面）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       3. 王红丽
+  ========================================================= -->
+  <div class="teacher-card" id="wanghl">
+    <div class="card-header">
+      <div class="avatar">王</div>
+      <div class="info">
+        <h2>王红丽</h2>
+        <div class="meta">
+          <span class="dept-label dept-mg">管理学系</span>教授（三级）· 博导 · 管理学系副系主任 · <strong style="color:#c62828">国家高层次人才（2021）</strong>
+        </div>
+      </div>
+      <div class="tags">
+        <div class="rank-tag" style="background:#ffe0e0;color:#c62828;">国家人才</div>
+        <div style="font-size:0.78rem;color:var(--sub)">bmhlwang@scut.edu.cn</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>研究方向</h3>
+      <div class="research-tags">
+        <span class="rtag">组织行为学</span>
+        <span class="rtag">人力资源管理</span>
+        <span class="rtag">人工智能与组织管理</span>
+        <span class="rtag">数字化转型与创新</span>
+        <span class="rtag">企业管理</span>
+      </div>
+
+      <h3>代表论文列表（66+ 成果，下文为近期代表，含发表年份）</h3>
+      <table>
+        <thead><tr><th>#</th><th>论文标题</th><th>期刊</th><th>年份</th><th>级别</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1</td><td>How to break out of time dilemma: The subjective time boundaries for the effects of algorithmic control on gig workers</td>
+            <td>《心理学报》Acta Psychologica Sinica</td><td>2025</td>
+            <td><span class="badge cssci">CSSCI</span></td>
+          </tr>
+          <tr>
+            <td>2</td><td>不一致的创新潜力：领导—下属底线心态不一致对下属创新行为影响研究</td><td>（国内核心期刊）</td><td>2025</td><td>—</td>
+          </tr>
+          <tr>
+            <td>3</td><td>员工创新行为对数字化领导的逆向影响研究</td><td>（国内核心期刊）</td><td>2025</td><td>—</td>
+          </tr>
+          <tr>
+            <td>4</td><td>AI时代如何分好"蛋糕"：组织内薪酬分配挑战与优化</td><td>《清华管理评论》</td><td>2025</td><td>—</td>
+          </tr>
+          <tr>
+            <td>5</td><td>创造力的"机器搭子"：机器人如何促进人类创造效能</td><td>《清华管理评论》</td><td>2025</td><td>—</td>
+          </tr>
+          <tr>
+            <td>6</td><td>夹缝求生：矛盾视角下非体面工作从业者矛盾职业认同动态演化过程研究</td><td>《南开管理评论》</td><td>2024</td>
+            <td><span class="badge cssci">CSSCI</span></td>
+          </tr>
+          <tr>
+            <td>7</td><td>Empowerment or disempowerment: The influence of using AI on creative personality</td>
+            <td>《心理科学进展》</td><td>2024</td>
+            <td><span class="badge cssci">CSSCI</span></td>
+          </tr>
+          <tr>
+            <td>8</td><td>主动抑或回避？多重支持资源对非体面工作感知与矛盾职业认同的影响机制研究</td>
+            <td>《商业经济与管理》</td><td>2024</td>
+            <td><span class="badge cssci">CSSCI</span></td>
+          </tr>
+          <tr>
+            <td>9</td><td>大象跳舞：企业如何挣脱"协作过载"的枷锁</td>
+            <td>《清华管理评论》</td><td>2024</td><td>—</td>
+          </tr>
+          <tr>
+            <td>10</td><td>The formation mechanism of ambivalent occupational identification of non-decent workers from paradoxical perspective</td>
+            <td>《心理科学进展》</td><td>2022</td>
+            <td><span class="badge cssci">CSSCI</span></td>
+          </tr>
+          <tr>
+            <td>11</td><td>How Transformational Leadership Motivates Employee Involvement: The Roles of Psychological Safety and Traditionality</td>
+            <td><em>SAGE Open</em></td><td>2022</td>
+            <td><span class="badge ssci">SSCI</span></td>
+          </tr>
+          <tr>
+            <td>12</td><td>Supervisory Career Support and Workplace Wellbeing in Chinese Healthcare Workers: The Mediating Role of Career Commitment</td>
+            <td><em>Sustainability</em></td><td>2021</td>
+            <td><span class="badge sci">SCI</span><span class="badge ssci">SSCI</span></td>
+          </tr>
+          <tr>
+            <td>13</td><td>Coping with job stress for hospital nurses during the COVID-19 crisis: The joint roles of micro-breaks and psychological detachment</td>
+            <td><em>Journal of Nursing Management</em></td><td>2021</td>
+            <td><span class="badge ssci">SSCI</span></td>
+          </tr>
+          <tr>
+            <td>14</td><td>得到信任的员工一定会被激励吗？</td>
+            <td>《清华管理评论》/《企业家信息》</td><td>2021</td><td>—</td>
+          </tr>
+          <tr>
+            <td>15</td><td>被信任的代价：员工感知上级信任、角色负荷、工作压力与情绪耗竭</td>
+            <td>《管理世界》</td><td>2016</td>
+            <td><span class="badge cssci">基金委A类</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>期刊覆盖概况（50+ 论文，绝大多数第一作者）</h3>
+      <table>
+        <thead><tr><th>期刊/刊物</th><th>级别/影响</th><th>篇数</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><em>Human Resource Management</em></td>
+            <td><span class="badge utd24">FT50</span> SSCI</td>
+            <td>发表多篇</td>
+          </tr>
+          <tr>
+            <td><em>International Journal of Hospitality Management</em></td>
+            <td><span class="badge ssci">SSCI</span></td>
+            <td>发表多篇</td>
+          </tr>
+          <tr>
+            <td><em>Group Decision and Negotiation</em></td>
+            <td><span class="badge ssci">SSCI</span></td>
+            <td>发表多篇</td>
+          </tr>
+          <tr>
+            <td><em>International Journal of Human-Computer Interaction</em></td>
+            <td><span class="badge ssci">SSCI</span></td>
+            <td>发表多篇</td>
+          </tr>
+          <tr>
+            <td><em>International Journal of Human Resource Management</em></td>
+            <td><span class="badge ssci">SSCI</span></td>
+            <td>发表多篇</td>
+          </tr>
+          <tr>
+            <td><em>Journal of Safety Research</em></td>
+            <td><span class="badge ssci">SSCI</span></td>
+            <td>发表多篇</td>
+          </tr>
+          <tr>
+            <td>《管理世界》</td>
+            <td><span class="badge cssci">基金委A类</span></td>
+            <td>2篇</td>
+          </tr>
+          <tr>
+            <td>《南开管理评论》</td>
+            <td><span class="badge cssci">CSSCI</span></td>
+            <td>3篇</td>
+          </tr>
+          <tr>
+            <td>《心理学报》《管理科学学报》《系统工程理论与实践》《心理科学进展》</td>
+            <td><span class="badge cssci">CSSCI</span></td>
+            <td>各若干篇</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:10px;font-size:0.85rem;color:var(--sub)">
+        ★ 6篇论文被人大复印资料全文转载；出版论著2部；获广东省哲学社会科学成果二等奖、三等奖各1项。
+      </p>
+      <p style="margin-top:10px;font-size:0.85rem;color:var(--sub)">
+        ★ 发表时间线：早年聚焦信任研究（2016《管理世界》"被信任的代价"），近年大力拓展AI与组织管理交叉领域（2024-2025多篇），形成"传统组织行为→AI+管理"的转型路径。
+      </p>
+      <p style="margin-top:6px;font-size:0.85rem;color:var(--sub)">
+        ★ 2025年12月，以"Saving face: Leveraging AI-based negative feedback to enhance employee job performance"为题在学术讲座进行最新成果分享，聚焦 AI 反馈与员工绩效。
+      </p>
+
+      <h3>📎 数据来源</h3>
+      <div style="margin-top:6px;">
+        <a class="source-link" href="https://cnsba.scut.edu.cn/2020/0311/c24834a366013/page.htm" target="_blank" title="华南理工大学官网 — 王红丽个人主页">🖥 华工官网个人主页</a>
+        <a class="source-link" href="https://a.xueshu.baidu.com/scholarID/CN-BLG86CZK" target="_blank" title="百度学术 — 王红丽学者主页">📚 百度学术（66+成果详情）</a>
+        <span style="font-size:0.75rem;color:var(--sub)">（论文标题、年份来自百度学术；期刊覆盖信息来自华工官网）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       4. 张峰
+  ========================================================= -->
+  <div class="teacher-card" id="zhangf">
+    <div class="card-header">
+      <div class="avatar">张</div>
+      <div class="info">
+        <h2>张峰</h2>
+        <div class="meta">
+          <span class="dept-label dept-te">技术经济与管理系</span>教授 · 博导
+        </div>
+      </div>
+      <div class="tags">
+        <div class="rank-tag">教授</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>研究方向</h3>
+      <div class="research-tags">
+        <span class="rtag">企业战略管理</span>
+        <span class="rtag">创新与创业管理</span>
+        <span class="rtag">数字化转型与创新管理</span>
+        <span class="rtag">社会责任与绿色创新</span>
+      </div>
+
+      <h3>代表性论文（SSCI/SCI）</h3>
+      <table>
+        <thead><tr><th>#</th><th>论文标题</th><th>期刊</th><th>年份</th><th>收录</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Roles of relationships between large shareholders and managers in radical innovation: A stewardship theory perspective</td>
+            <td><em>Journal of Product Innovation Management</em></td>
+            <td>2018</td>
+            <td><span class="badge sci">SCI</span><span class="badge ssci">SSCI Q1</span></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Digital technology-driven business model innovation: The roles of strategic flexibility and institutional forces</td>
+            <td><em>Technological Forecasting and Social Change</em></td>
+            <td>2023</td>
+            <td><span class="badge ssci">SSCI Q1</span></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Moving from reverse engineering to disruptive innovation in emerging markets: The importance of knowledge creation</td>
+            <td><em>Technovation</em></td>
+            <td>2023</td>
+            <td><span class="badge ssci">SSCI Q1</span></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>Social media strategic capability, organizational unlearning, and disruptive innovation of SMEs</td>
+            <td><em>Journal of Business Research</em></td>
+            <td>2021</td>
+            <td><span class="badge ssci">SSCI Q1</span></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>The role of task conflict in cooperative innovation projects: An organizational learning theory perspective</td>
+            <td><em>International Journal of Project Management</em></td>
+            <td>2021</td>
+            <td><span class="badge ssci">SSCI Q1</span></td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>Interfirm coopetition, interfirm knowledge creation, and collaborative innovation performance</td>
+            <td><em>Industrial Marketing Management</em></td>
+            <td>2021</td>
+            <td><span class="badge ssci">SSCI Q1</span></td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>How does environmental dynamism impact green process innovation? A supply chain cooperation perspective</td>
+            <td><em>IEEE Transactions on Engineering Management</em></td>
+            <td>2023</td>
+            <td><span class="badge ssci">SSCI Q1</span></td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>Enhancing corporate sustainable development: Stakeholder pressures, organizational learning, and green innovation</td>
+            <td><em>Business Strategy and the Environment</em></td>
+            <td>2019</td>
+            <td><span class="badge ssci">SSCI Q1</span></td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td>Do family firms invest more in proactive environmental strategy than non-family firms?</td>
+            <td><em>Journal of Cleaner Production</em></td>
+            <td>2021</td>
+            <td><span class="badge ssci">SSCI Q1</span></td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td>《股东积极主义视角下大股东参与行为对企业创新绩效的影响》</td>
+            <td>《南开管理评论》</td>
+            <td>2016</td>
+            <td><span class="badge cssci">CSSCI</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>📎 数据来源</h3>
+      <div style="margin-top:6px;">
+        <a class="source-link" href="https://cnsba.scut.edu.cn/2020/0310/c24831a365715/page.htm" target="_blank" title="华南理工大学官网 — 张峰个人主页">🖥 华工官网个人主页</a>
+        <span style="font-size:0.75rem;color:var(--sub)">（论文列表和研究方向均来自此页面）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       5. 赖朝安
+  ========================================================= -->
+  <div class="teacher-card" id="laica">
+    <div class="card-header">
+      <div class="avatar">赖</div>
+      <div class="info">
+        <h2>赖朝安</h2>
+        <div class="meta">
+          <span class="dept-label dept-ie">工业工程系</span>副教授 · 硕导
+        </div>
+      </div>
+      <div class="tags">
+        <div class="rank-tag">副教授</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>研究方向</h3>
+      <div class="research-tags">
+        <span class="rtag">智能制造</span>
+        <span class="rtag">技术预见与创新方法</span>
+        <span class="rtag">专利挖掘与分析</span>
+        <span class="rtag">精益生产与人因工程</span>
+        <span class="rtag">工业物联网</span>
+      </div>
+
+      <h3>代表性论文（近年精选）</h3>
+      <table>
+        <thead><tr><th>#</th><th>论文标题</th><th>期刊</th><th>年份</th><th>收录</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>Deep Learning-Based Energy Consumption Prediction Model for Green Industrial Parks</td>
+            <td><em>Applied Artificial Intelligence</em></td>
+            <td>2025</td>
+            <td><span class="badge sci">SCI</span></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>基于三方演化博弈的制造企业数字化转型路径分析——以家电制造业为例</td>
+            <td>《工业技术经济》</td>
+            <td>2025</td>
+            <td>核心期刊</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Bilevel Fee-Setting Optimization for Cloud Monitoring Service Under Uncertainty</td>
+            <td><em>IEEE Access</em></td>
+            <td>2018</td>
+            <td><span class="badge sci">SCI</span></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>Optimal planning of technology roadmap under uncertainty</td>
+            <td><em>Journal of the Operational Research Society</em></td>
+            <td>2020</td>
+            <td><span class="badge sci">SCI</span></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>基于专利挖掘的移动医疗产业技术预见</td>
+            <td>《科研管理》</td>
+            <td>2018</td>
+            <td><span class="badge cssci">CSSCI</span></td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>一种基于专利分析的技术成熟度评估算法</td>
+            <td>《科研管理》</td>
+            <td>2017</td>
+            <td><span class="badge cssci">CSSCI</span></td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>基于专利知识图谱的技术预见方法研究</td>
+            <td>《科研管理》</td>
+            <td>2017</td>
+            <td><span class="badge cssci">CSSCI</span></td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>基于高斯过程回归和WiFi指纹的室内定位方法</td>
+            <td>《电子测量与仪器学报》</td>
+            <td>2021</td>
+            <td><span class="badge ei">EI</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>著作（代表）</h3>
+      <table>
+        <thead><tr><th>书名</th><th>出版社</th><th>年份</th></tr></thead>
+        <tbody>
+          <tr><td>《Intelligent Manufacturing》</td><td>Springer</td><td>2022</td></tr>
+          <tr><td>《智能制造-模型体系与实施路径》</td><td>机械工业出版社</td><td>2019</td></tr>
+        </tbody>
+      </table>
+
+      <h3>📎 数据来源</h3>
+      <div style="margin-top:6px;">
+        <a class="source-link" href="https://faculty.scut.edu.cn/gsgl/lca/main.htm" target="_blank" title="华南理工大学官网 — 赖朝安个人主页">🖥 华工官网个人主页</a>
+        <span style="font-size:0.75rem;color:var(--sub)">（论文列表、研究方向、著作均来自此页面；累计90+篇，页面列出完整论文）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       6. 刘小龙
+  ========================================================= -->
+  <div class="teacher-card" id="liuxl">
+    <div class="card-header">
+      <div class="avatar">刘</div>
+      <div class="info">
+        <h2>刘小龙</h2>
+        <div class="meta">
+          <span class="dept-label dept-ie">工业工程系</span>讲师
+        </div>
+      </div>
+      <div class="tags">
+        <div class="rank-tag" style="background:#e8f5e9;color:#2e7d32;">讲师</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>研究方向</h3>
+      <div class="research-tags">
+        <span class="rtag">计算智能与仿生优化算法</span>
+        <span class="rtag">项目管理</span>
+        <span class="rtag">信息化与工业化融合</span>
+        <span class="rtag">大数据分析</span>
+      </div>
+
+      <h3>代表性论文（发表 30+ 篇）</h3>
+      <table>
+        <thead><tr><th>#</th><th>论文标题</th><th>期刊</th><th>年份</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>基于统计指导的飞蛾扑火算法求解大规模优化问题</td>
+            <td>《控制与决策》</td>
+            <td>2018</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>改进多元宇宙算法求解大规模实值优化问题</td>
+            <td>《电子与信息学报》</td>
+            <td>2019</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>基于统计引导和多项式差分学习的樽海鞘优化算法</td>
+            <td>《运筹与管理》</td>
+            <td>2019</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>基于高斯分布的细菌觅食优化算法</td>
+            <td>《控制与决策》</td>
+            <td>2011</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>基于免疫进化的细菌觅食优化算法</td>
+            <td>《计算机应用》</td>
+            <td>2012</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>基于差分进化的细菌觅食优化算法</td>
+            <td>《计算机应用研究》</td>
+            <td>2011</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>基于小波领袖多重分形分析法的股市有效性及风险检测</td>
+            <td>《中国管理科学》</td>
+            <td>2014</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>多约束选址—路径问题的改进混合遗传算法研究</td>
+            <td>《计算机应用研究》</td>
+            <td>2013</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td>广州市制造企业深度融合的现状、问题与对策研究</td>
+            <td>《科技管理研究》</td>
+            <td>2019</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>著作</h3>
+      <table>
+        <thead><tr><th>书名</th><th>出版社</th></tr></thead>
+        <tbody>
+          <tr><td>《基于微生物行为机制的粒子群优化算法研究》（李荣钧、刘小龙）</td><td>华南理工大学出版社</td></tr>
+          <tr><td>《管理统计学》（张卫国、刘小龙、徐维军）</td><td>华南理工大学出版社</td></tr>
+        </tbody>
+      </table>
+
+      <h3>📎 数据来源</h3>
+      <div style="margin-top:6px;">
+        <a class="source-link" href="https://baike.baidu.com/item/%E5%88%98%E5%B0%8F%E9%BE%99/18601806" target="_blank" title="百度百科 — 刘小龙词条">📖 百度百科</a>
+        <a class="source-link" href="https://cnsba.scut.edu.cn/2020/0312/c24832a366124/page.htm" target="_blank" title="华南理工大学官网 — 工业工程系">🖥 华工官网工业工程系</a>
+        <span style="font-size:0.75rem;color:var(--sub)">（论文列表来自百度百科词条；研究方向来自华工官网）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       7. 刘勇军
+  ========================================================= -->
+  <div class="teacher-card" id="liuyj">
+    <div class="card-header">
+      <div class="avatar">刘</div>
+      <div class="info">
+        <h2>刘勇军</h2>
+        <div class="meta">
+          <span class="dept-label dept-ds">决策科学系</span>教授 · 博导
+          · <strong style="color:#e65100">广东省杰出青年基金</strong>
+          · <strong style="color:#e65100">广东省珠江青年学者</strong>
+        </div>
+      </div>
+      <div class="tags">
+        <div class="rank-tag">教授</div>
+        <div style="font-size:0.78rem;color:var(--sub)">bmyjliu@scut.edu.cn</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>研究方向</h3>
+      <div class="research-tags">
+        <span class="rtag">投资决策</span>
+        <span class="rtag">金融风险管理</span>
+        <span class="rtag">模糊组合优化</span>
+        <span class="rtag">项目管理</span>
+        <span class="rtag">国际投融资决策</span>
+        <span class="rtag">数智决策与智能计算</span>
+      </div>
+
+      <h3>代表性论文（发表 80+ 篇，多篇被列为 SCIE "表现不俗"论文）</h3>
+      <table>
+        <thead><tr><th>#</th><th>论文标题</th><th>期刊</th><th>年份</th><th>收录</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>A multi-period fuzzy portfolio optimization model with minimum transaction lots</td>
+            <td><em>European Journal of Operational Research</em></td>
+            <td>2015</td>
+            <td><span class="badge sci">SCI</span></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>Fuzzy multi-period portfolio selection model with time-varying loss aversion</td>
+            <td><em>Journal of the Operational Research Society</em></td>
+            <td>2020</td>
+            <td><span class="badge sci">SCI</span></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Fuzzy portfolio optimization model under real constraints</td>
+            <td><em>Insurance: Mathematics and Economics</em></td>
+            <td>2013</td>
+            <td><span class="badge sci">SCI</span></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>（在以下期刊均有发表）</td>
+            <td><em>Omega</em> / <em>Automatica</em> / <em>IEEE Trans. Fuzzy Systems</em> / <em>Fuzzy Sets and Systems</em> / <em>Annals of Operations Research</em> / <em>Information Sciences</em> / <em>Applied Soft Computing</em> / <em>Knowledge-Based Systems</em> / <em>Computational Economics</em> / 《系统工程理论与实践》</td>
+            <td>历年</td>
+            <td><span class="badge sci">SCI</span><span class="badge cssci">CSSCI</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>主要科研奖励</h3>
+      <table>
+        <thead><tr><th>奖项</th><th>年份</th></tr></thead>
+        <tbody>
+          <tr><td>广东省第六届哲学社会科学优秀成果奖 <strong>一等奖</strong></td><td>2015</td></tr>
+          <tr><td>广东省第七届哲学社会科学优秀成果奖 <strong>二等奖</strong></td><td>2017</td></tr>
+          <tr><td>第九届广东省优秀金融科研成果奖 三等奖</td><td>2016</td></tr>
+          <tr><td>决策咨询报告获中央办公厅及省市主要领导采纳批示</td><td>—</td></tr>
+        </tbody>
+      </table>
+
+      <h3>📎 数据来源</h3>
+      <div style="margin-top:6px;">
+        <a class="source-link" href="https://cnsba.scut.edu.cn/2020/0309/c24833a365346/page.htm" target="_blank" title="华南理工大学官网 — 刘勇军个人主页">🖥 华工官网个人主页</a>
+        <span style="font-size:0.75rem;color:var(--sub)">（研究方向、论文概况、科研奖励均来自此页面；具体论文标题来自Web of Science/百度学术检索）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       8. 黄伟祥
+  ========================================================= -->
+  <div class="teacher-card" id="huangwx">
+    <div class="card-header">
+      <div class="avatar">黄</div>
+      <div class="info">
+        <h2>黄伟祥</h2>
+        <div class="meta">
+          <span class="dept-label dept-ie">工业工程系</span>副教授 · 博导
+        </div>
+      </div>
+      <div class="tags">
+        <div class="rank-tag">副教授</div>
+        <div style="font-size:0.78rem;color:var(--sub)">huangwxba@scut.edu.cn</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>研究方向</h3>
+      <div class="research-tags">
+        <span class="rtag">服务运作管理</span>
+        <span class="rtag">共享经济</span>
+        <span class="rtag">可持续运营管理</span>
+        <span class="rtag">供应链金融</span>
+        <span class="rtag">绿色供应链</span>
+      </div>
+
+      <h3>代表性论文（含 UTD-24 期刊）</h3>
+      <table>
+        <thead><tr><th>#</th><th>论文标题</th><th>期刊</th><th>年份</th><th>收录</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>On the benefit of privatization in a mixed duopoly service system</td>
+            <td><em>Management Science</em></td>
+            <td>2023</td>
+            <td><span class="badge utd24">UTD-24</span><span class="badge sci">SCI</span><span class="badge ssci">SSCI</span></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>To pool or not to pool? The effect of loss aversion on queue configurations</td>
+            <td><em>Production and Operations Management</em></td>
+            <td>2021</td>
+            <td><span class="badge utd24">UTD-24</span><span class="badge sci">SCI</span></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>Overage disutility, user trading and tariff design</td>
+            <td><em>Production and Operations Management</em></td>
+            <td>2021</td>
+            <td><span class="badge utd24">UTD-24</span><span class="badge sci">SCI</span></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>Competitive advantage of qualified WEEE recyclers through EPR legislation</td>
+            <td><em>European Journal of Operational Research</em></td>
+            <td>2017</td>
+            <td><span class="badge sci">SCI Q1</span></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>Contract designs for energy-saving product development in a monopoly</td>
+            <td><em>European Journal of Operational Research</em></td>
+            <td>2016</td>
+            <td><span class="badge sci">SCI Q1</span></td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>The government's optimal subsidy scheme under manufacturers' competition of price and product energy efficiency</td>
+            <td><em>OMEGA</em></td>
+            <td>2019</td>
+            <td><span class="badge sci">SCI Q1</span><span class="badge ssci">SSCI Q1</span></td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>Performance evaluation and improvement for ZEV credit regulation in a competitive environment</td>
+            <td><em>OMEGA</em></td>
+            <td>2021</td>
+            <td><span class="badge sci">SCI Q1</span><span class="badge ssci">SSCI Q1</span></td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td>提高顾客等待满意度的两类排队管理策略</td>
+            <td>《管理科学学报》</td>
+            <td>2014</td>
+            <td><span class="badge cssci">基金委A类</span></td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td>按需服务平台中两类抑制挑单行为的机制研究</td>
+            <td>《管理科学学报》</td>
+            <td>2021</td>
+            <td><span class="badge cssci">基金委A类</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>科研基金</h3>
+      <table>
+        <thead><tr><th>项目</th><th>时间</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td>国家自然科学基金 面上项目</td><td>2023–2026</td><td>在研</td></tr>
+          <tr><td>国家自然科学基金 青年项目</td><td>2019–2021</td><td>已结题</td></tr>
+          <tr><td>广东省自然科学基金 面上项目</td><td>2022–2024</td><td>在研</td></tr>
+          <tr><td>中国博士后科学基金 面上资助（一等）</td><td>2019–2021</td><td>已结题</td></tr>
+        </tbody>
+      </table>
+
+      <h3>📎 数据来源</h3>
+      <div style="margin-top:6px;">
+        <a class="source-link" href="https://cnsba.scut.edu.cn/2020/0312/c28032a366119/page.htm" target="_blank" title="华南理工大学官网 — 黄伟祥个人主页">🖥 华工官网个人主页</a>
+        <span style="font-size:0.75rem;color:var(--sub)">（论文列表、研究方向、基金项目均来自此页面）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       9. 庄东
+  ========================================================= -->
+  <div class="teacher-card" id="zhuangd">
+    <div class="card-header">
+      <div class="avatar">庄</div>
+      <div class="info">
+        <h2>庄东</h2>
+        <div class="meta">
+          <span class="dept-label dept-ds">决策科学系</span>讲师 · 副系主任（系秘书）
+        </div>
+      </div>
+      <div class="tags">
+        <div class="rank-tag" style="background:#e8f5e9;color:#2e7d32;">讲师/博士</div>
+        <div style="font-size:0.78rem;color:var(--sub)">dzhuang@scut.edu.cn</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>研究方向</h3>
+      <div class="research-tags">
+        <span class="rtag">管理决策与系统理论</span>
+        <span class="rtag">复杂网络在经济管理中的应用</span>
+        <span class="rtag">开源软件</span>
+        <span class="rtag">系统方法论</span>
+        <span class="rtag">口碑营销与社会网络</span>
+      </div>
+
+      <h3>代表性论文</h3>
+      <table>
+        <thead><tr><th>#</th><th>论文标题</th><th>期刊</th><th>年份</th><th>收录</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>1</td>
+            <td>A study of design approach of spreading schemes for viral marketing based on human dynamics（J Yang, D Zhuang, W Xie, G Chen）</td>
+            <td><em>Physica A: Statistical Mechanics and its Applications</em></td>
+            <td>2013</td>
+            <td><span class="badge sci">SCI</span></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td>The complex network analysis of service channels of a bank its management utility（Yang Jianmei, Zhuang Dong）</td>
+            <td><em>Dynamics of Continuous, Discrete and Impulsive Systems, Series B</em></td>
+            <td>—</td>
+            <td><span class="badge sci">SCI</span></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td>The theory of smax does not seem to work in a real case study（Yang Jianmei, Zhuang Dong, Chen Guanrong）</td>
+            <td><em>Dynamics of Continuous, Discrete and Impulsive Systems, Series B</em></td>
+            <td>2006</td>
+            <td><span class="badge sci">SCI</span></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td>The bipartite network based growth mechanisms of complex company competitive relationship networks（Zhuang Dong et al.）</td>
+            <td><em>IEEE Asia-Pacific Conference on Services Computing</em></td>
+            <td>2006</td>
+            <td><span class="badge ei">EI</span></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td>社会网络的多层次特性对口碑营销影响的综合评价（李锋, 庄东）</td>
+            <td>《华南理工大学学报（社会科学版）》</td>
+            <td>2016</td>
+            <td>核心期刊</td>
+          </tr>
+          <tr>
+            <td>6</td>
+            <td>迭代产品病毒式线上口碑营销下的库存优化（李锋, 林宁, 庄东）</td>
+            <td>《华南理工大学学报（社会科学版）》</td>
+            <td>2017</td>
+            <td>核心期刊</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td>产业竞争关系复杂网络上的竞争扩散研究（姚灿中, 杨建梅, 庄东）</td>
+            <td>《管理学报》</td>
+            <td>2011</td>
+            <td><span class="badge cssci">CSSCI</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>著作及教材</h3>
+      <table>
+        <thead><tr><th>书名</th><th>出版社</th></tr></thead>
+        <tbody>
+          <tr><td>《运筹学》（李锋、庄东）</td><td>机械工业出版社</td></tr>
+          <tr><td>《数据、模型与决策》（杨建梅、宋光辉、邝英强、庄东）</td><td>华南理工大学出版社</td></tr>
+        </tbody>
+      </table>
+
+      <h3>📎 数据来源</h3>
+      <div style="margin-top:6px;">
+        <a class="source-link" href="https://cnsba.scut.edu.cn/2020/0309/c24833a365360/page.htm" target="_blank" title="华南理工大学官网 — 庄东个人主页">🖥 华工官网个人主页</a>
+        <span style="font-size:0.75rem;color:var(--sub)">（论文列表、研究方向、著作均来自此页面）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 综合对比 -->
+  <div class="teacher-card" style="margin-top:40px;">
+    <div class="card-header" style="background:linear-gradient(90deg,#e3f0ff,#fff);">
+      <div class="info"><h2 style="color:var(--primary);">📊 综合对比一览</h2></div>
+    </div>
+    <div class="card-body">
+      <table>
+        <thead>
+          <tr>
+            <th>姓名</th><th>职称</th><th>所在系</th><th>核心研究方向</th><th>最高发表级别</th><th>论文规模</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>余建军</strong></td><td>副教授</td>
+            <td><span class="dept-label dept-ie">工业工程</span></td>
+            <td>运作管理、供应链、生产调度</td>
+            <td><span class="badge sci">SCI</span></td>
+            <td>50+篇</td>
+          </tr>
+          <tr>
+            <td><strong>王爱虎</strong></td><td>教授</td>
+            <td><span class="dept-label dept-ie">工业工程</span></td>
+            <td>国际物流、供应链、工业工程</td>
+            <td><span class="badge sci">SCI/EI</span></td>
+            <td>30+篇</td>
+          </tr>
+          <tr>
+            <td><strong>王红丽</strong></td><td>教授（国家高层次人才）</td>
+            <td><span class="dept-label dept-mg">管理学</span></td>
+            <td>组织行为、人力资源、AI与管理</td>
+            <td><span class="badge utd24">FT50·SSCI</span></td>
+            <td>66+篇</td>
+          </tr>
+          <tr>
+            <td><strong>张峰</strong></td><td>教授</td>
+            <td><span class="dept-label dept-te">技术经济与管理</span></td>
+            <td>创新管理、数字化转型、绿色创新</td>
+            <td><span class="badge ssci">SSCI Q1</span></td>
+            <td>20+篇（高质量）</td>
+          </tr>
+          <tr>
+            <td><strong>赖朝安</strong></td><td>副教授</td>
+            <td><span class="dept-label dept-ie">工业工程</span></td>
+            <td>智能制造、技术预见、创新方法</td>
+            <td><span class="badge sci">SCI</span></td>
+            <td>90+篇</td>
+          </tr>
+          <tr>
+            <td><strong>刘小龙</strong></td><td>讲师</td>
+            <td><span class="dept-label dept-ie">工业工程</span></td>
+            <td>计算智能、仿生算法、大数据</td>
+            <td>核心期刊</td>
+            <td>30+篇</td>
+          </tr>
+          <tr>
+            <td><strong>刘勇军</strong></td><td>教授（广东省杰出青年）</td>
+            <td><span class="dept-label dept-ds">决策科学</span></td>
+            <td>金融风险、模糊决策、投资优化</td>
+            <td><span class="badge sci">SCI（EJOR/Omega）</span></td>
+            <td>80+篇</td>
+          </tr>
+          <tr>
+            <td><strong>黄伟祥</strong></td><td>副教授</td>
+            <td><span class="dept-label dept-ie">工业工程</span></td>
+            <td>服务运作、共享经济、可持续运营</td>
+            <td><span class="badge utd24">UTD-24</span><span class="badge sci">SCI</span></td>
+            <td>10+篇（高质量）</td>
+          </tr>
+          <tr>
+            <td><strong>庄东</strong></td><td>讲师（博士）</td>
+            <td><span class="dept-label dept-ds">决策科学</span></td>
+            <td>复杂网络、管理决策、系统理论</td>
+            <td><span class="badge sci">SCI</span></td>
+            <td>10+篇</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 数据来源汇总 -->
+  <div class="teacher-card" style="margin-top:40px;">
+    <div class="card-header" style="background:linear-gradient(90deg,#e8f5e9,#fff);">
+      <div class="info"><h2 style="color:#2e7d32;">🔗 完整数据来源汇总（可点击直达）</h2></div>
+    </div>
+    <div class="card-body">
+      <table>
+        <thead>
+          <tr><th>姓名</th><th>主要数据来源 URL</th><th>来源类型</th><th>可访问</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>余建军</strong></td>
+            <td><a href="https://cnsba.scut.edu.cn/2020/0312/c24831a366252/page.htm" target="_blank">cnsba.scut.edu.cn/2020/0312/c24831a366252/page.htm</a></td>
+            <td>华工官网</td><td>✅</td>
+          </tr>
+          <tr>
+            <td><strong>王爱虎</strong></td>
+            <td><a href="https://cnsba.scut.edu.cn/2020/0312/c24832a366205/page.htm" target="_blank">cnsba.scut.edu.cn/2020/0312/c24832a366205/page.htm</a></td>
+            <td>华工官网</td><td>✅</td>
+          </tr>
+          <tr>
+            <td><strong>王红丽</strong></td>
+            <td>
+              <a href="https://cnsba.scut.edu.cn/2020/0311/c24834a366013/page.htm" target="_blank">华工官网</a>
+              &nbsp;+&nbsp;
+              <a href="https://a.xueshu.baidu.com/scholarID/CN-BLG86CZK" target="_blank">百度学术 ScholarID页</a>
+            </td>
+            <td>官网+百度学术</td><td>✅</td>
+          </tr>
+          <tr>
+            <td><strong>张峰</strong></td>
+            <td><a href="https://cnsba.scut.edu.cn/2020/0310/c24831a365715/page.htm" target="_blank">cnsba.scut.edu.cn/2020/0310/c24831a365715/page.htm</a></td>
+            <td>华工官网</td><td>✅</td>
+          </tr>
+          <tr>
+            <td><strong>赖朝安</strong></td>
+            <td><a href="https://faculty.scut.edu.cn/gsgl/lca/main.htm" target="_blank">faculty.scut.edu.cn/gsgl/lca/main.htm</a></td>
+            <td>华工官网</td><td>✅</td>
+          </tr>
+          <tr>
+            <td><strong>刘小龙</strong></td>
+            <td>
+              <a href="https://baike.baidu.com/item/%E5%88%98%E5%B0%8F%E9%BE%99/18601806" target="_blank">百度百科词条</a>
+              &nbsp;+&nbsp;
+              <a href="https://cnsba.scut.edu.cn/2020/0312/c24832a366124/page.htm" target="_blank">华工官网</a>
+            </td>
+            <td>百科+官网</td><td>✅</td>
+          </tr>
+          <tr>
+            <td><strong>刘勇军</strong></td>
+            <td><a href="https://cnsba.scut.edu.cn/2020/0309/c24833a365346/page.htm" target="_blank">cnsba.scut.edu.cn/2020/0309/c24833a365346/page.htm</a></td>
+            <td>华工官网</td><td>✅</td>
+          </tr>
+          <tr>
+            <td><strong>黄伟祥</strong></td>
+            <td><a href="https://cnsba.scut.edu.cn/2020/0312/c28032a366119/page.htm" target="_blank">cnsba.scut.edu.cn/2020/0312/c28032a366119/page.htm</a></td>
+            <td>华工官网</td><td>✅</td>
+          </tr>
+          <tr>
+            <td><strong>庄东</strong></td>
+            <td><a href="https://cnsba.scut.edu.cn/2020/0309/c24833a365360/page.htm" target="_blank">cnsba.scut.edu.cn/2020/0309/c24833a365360/page.htm</a></td>
+            <td>华工官网</td><td>✅</td>
+          </tr>
+        </tbody>
+      </table>
+      <p style="margin-top:14px;font-size:0.85rem;color:var(--sub);line-height:1.8;">
+        📌 <strong>说明</strong><br>
+        • 所有论文标题均来自以上官方数据源，经抓取整理。<br>
+        • 论文标题单元格 <strong>hover 时显示 🔗</strong>，点击通过<strong>百度学术</strong>搜索该论文。<br>
+        • 知网（CNKI）有反爬验证限制无法直接工具访问，建议通过华工图书馆 VPN 获取全文。
+      </p>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  数据整理自华工官网、百度学术、百度百科、万方等公开来源 &nbsp;|&nbsp; 蓝色链接可直接点击访问 &nbsp;|&nbsp; 报告生成：2026-06-13
+</footer>
+
+<script>
+// 自动为论文标题单元格附加百度学术搜索链接（hover 可见 🔗）
+(function() {
+  document.querySelectorAll('table tbody tr').forEach(row => {
+    var cells = row.querySelectorAll('td');
+    if (cells.length < 2) return;
+    var titleCell = cells[1];
+    var title = titleCell.innerText.trim();
+    if (title.length < 5) return;
+    // 跳过非论文内容
+    if (/^(（在以下|项目名称|书名|奖项|期刊|来源|时间|状态)/.test(title)) return;
+    if (titleCell.querySelector('a')) return;
+    var query = encodeURIComponent(title);
+    var url = 'https://xueshu.baidu.com/s?wd=' + query;
+    titleCell.classList.add('paper-title');
+    titleCell.innerHTML = '<a href="' + url + '" target="_blank" title="百度学术搜索：' + title.replace(/"/g, '&quot;') + '">' + titleCell.innerHTML + '</a>';
+  });
+})();
+
+// 移动端：为所有表格包裹横向滚动容器
+(function() {
+  document.querySelectorAll('.card-body table').forEach(function(tbl) {
+    // 避免重复包裹
+    if (tbl.parentNode.classList.contains('table-wrap')) return;
+    var wrap = document.createElement('div');
+    wrap.className = 'table-wrap';
+    tbl.parentNode.insertBefore(wrap, tbl);
+    wrap.appendChild(tbl);
+  });
+})();
+</script>
+
+</body>
+</html>

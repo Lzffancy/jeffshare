@@ -4,25 +4,36 @@
 
 <div class="hero">
     <h1>📊 研究报告</h1>
-    <p>研究报告展示</p>
+    <p class="sub">{{ reports|length }} 份报告</p>
 </div>
 
-<div class="home-grid">
+<div class="grid">
 {% if reports %}
-<div class="card-grid">
     {% for r in reports %}
     <a href="/reports/files/{{ r.name }}/" class="card" style="text-decoration:none;color:inherit;">
         <div class="card-img c{{ loop.cycle('2','3','4','1') }}">📊</div>
         <div class="card-body">
             <h2>{{ r.name }}</h2>
-            <p>{{ r.files|length }} 个文件</p>
-            <span class="btn btn-primary">查看报告 →</span>
+            <p>
+                包含 {{ r.files|length }} 个文件{% if r.files %}：<br>
+                {%- for f in r.files[:5] -%}
+                📎 {{ f }}{% if not loop.last %}<br>{% endif %}
+                {%- endfor -%}
+                {%- if r.files|length > 5 %}<br>… 还有 {{ r.files|length - 5 }} 个文件{% endif %}
+                {%- endif %}
+            </p>
+            <span class="btn btn-primary">查看 →</span>
         </div>
     </a>
     {% endfor %}
-</div>
 {% else %}
-<p class="empty" style="padding:0 20px;">还没有报告，在 content/reports/ 下新建目录即可。</p>
+    <div class="card">
+        <div class="card-img c3">📊</div>
+        <div class="card-body">
+            <h2>还没有报告</h2>
+            <p>在 content/reports/ 下新建目录即可。</p>
+        </div>
+    </div>
 {% endif %}
 </div>
 

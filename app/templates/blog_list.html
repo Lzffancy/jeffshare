@@ -4,30 +4,35 @@
 
 <div class="hero">
     <h1>📝 文章列表</h1>
-    <p>所有博客文章</p>
+    <p class="sub">{{ posts|length }} 篇文章</p>
 </div>
 
-<div class="home-grid">
+<div class="grid">
 {% if posts %}
-<div class="card-grid">
     {% for p in posts %}
     <a href="/blog/{{ p.slug }}" class="card" style="text-decoration:none;color:inherit;">
         <div class="card-img c{{ loop.cycle('1','2','3','4') }}">📝</div>
         <div class="card-body">
             <h2>{{ p.title }}</h2>
-            <p style="font-size:0.85rem;color:var(--sub);">{{ p.date }}</p>
+            <p>{{ p.date }}</p>
+            <p style="font-size:0.85rem;color:var(--sub);flex:none;">{{ p.preview }}</p>
             {% if p.tags %}
             <div class="tags">
-                {% for t in p.tags %}<span class="tag">{{ t }}</span>{% endfor %}
+                {% for t in p.tags %}<span class="ctag">{{ t }}</span>{% endfor %}
             </div>
             {% endif %}
-            <span class="btn btn-primary">阅读文章 →</span>
+            <span class="btn btn-primary">阅读 →</span>
         </div>
     </a>
     {% endfor %}
-</div>
 {% else %}
-<p class="empty" style="padding:0 20px;">还没有文章，在 content/posts/ 下新建 .md 文件即可发布。</p>
+    <div class="card">
+        <div class="card-img c3">📝</div>
+        <div class="card-body">
+            <h2>还没有文章</h2>
+            <p>在 content/posts/ 下新建 .md 文件即可发布。</p>
+        </div>
+    </div>
 {% endif %}
 </div>
 
