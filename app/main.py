@@ -21,6 +21,9 @@ logging.basicConfig(
 logger = logging.getLogger("blog")
 trace_id_var: contextvars.ContextVar[str] = contextvars.ContextVar("trace_id", default="-")
 
+# 关闭 uvicorn 自带 access log（我们的中间件已输出 REQ/RSP）
+logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
+
 
 # ── helpers ───────────────────────────────────────────────────────────
 def plain_preview(md_text: str, max_len: int = 120) -> str:
