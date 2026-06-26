@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工程管理概论（工程项目管理模块）复习资料</title>
+<style>
+  :root {
+    --bg: #f4f6f9;
+    --card-bg: #ffffff;
+    --text: #2c3e50;
+    --text-light: #5a6c7d;
+    --accent: #1a73e8;
+    --accent-light: #e8f0fe;
+    --border: #e0e4e8;
+    --tag-bg: #e8f0fe;
+    --tag-text: #1a73e8;
+    --warn-bg: #fef7e0;
+    --warn-border: #f9d563;
+    --success-bg: #e6f4ea;
+    --success-text: #137333;
+    --radius: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 4px 16px rgba(0,0,0,0.08);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 2rem 1rem;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  /* 顶部标题 */
+  .hero {
+    background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 2.5rem 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+  }
+  .hero h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    letter-spacing: 0.5px;
+  }
+  .hero .subtitle {
+    font-size: 0.95rem;
+    opacity: 0.85;
+  }
+  /* 导航标签 */
+  .toc {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+    justify-content: center;
+  }
+  .toc a {
+    display: inline-block;
+    padding: 0.45rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+    color: var(--accent);
+    background: var(--accent-light);
+    transition: all 0.2s;
+  }
+  .toc a:hover {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(26,115,232,0.3);
+  }
+  /* 卡片 */
+  .card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 1.8rem 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+  .card h2 {
+    font-size: 1.25rem;
+    color: var(--accent);
+    margin-bottom: 1.2rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 2px solid var(--accent-light);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .card h2 .emoji {
+    font-size: 1.3rem;
+  }
+  .card h3 {
+    font-size: 1.05rem;
+    color: #1a1a1a;
+    margin: 1.2rem 0 0.6rem;
+  }
+  /* 问答项 */
+  .qa-item {
+    margin-bottom: 1rem;
+    padding: 0.9rem 1.1rem;
+    background: #fafbfc;
+    border-radius: 8px;
+    border-left: 3px solid var(--accent);
+    transition: box-shadow 0.2s;
+  }
+  .qa-item:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .qa-item .q {
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 0.3rem;
+  }
+  .qa-item .a {
+    color: var(--text-light);
+    font-size: 0.93rem;
+  }
+  /* 标签 */
+  .tag {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: var(--tag-bg);
+    color: var(--tag-text);
+    margin-right: 0.3rem;
+  }
+  .tag.warn {
+    background: var(--warn-bg);
+    color: #b06000;
+  }
+  .tag.success {
+    background: var(--success-bg);
+    color: var(--success-text);
+  }
+  /* 公式框 */
+  .formula-box {
+    background: var(--accent-light);
+    border: 1px dashed var(--accent);
+    border-radius: 8px;
+    padding: 1rem 1.3rem;
+    margin: 1rem 0;
+    font-family: "SF Mono", "Fira Code", "Cascadia Code", monospace;
+    font-size: 0.92rem;
+    text-align: center;
+    color: #0d47a1;
+  }
+  /* 步骤列表 */
+  .steps {
+    list-style: none;
+    padding: 0;
+  }
+  .steps li {
+    counter-increment: step;
+    padding: 0.5rem 0 0.5rem 2.2rem;
+    position: relative;
+    margin-bottom: 0.3rem;
+  }
+  .steps li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 0.4rem;
+    width: 1.5rem;
+    height: 1.5rem;
+    line-height: 1.5rem;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+  /* 例题框 */
+  .example-box {
+    background: #fdfbff;
+    border: 1px solid #d4c5f0;
+    border-radius: 8px;
+    padding: 1.2rem 1.5rem;
+    margin: 1rem 0;
+  }
+  .example-box h4 {
+    color: #6b21a8;
+    margin-bottom: 0.8rem;
+    font-size: 0.95rem;
+  }
+  .highlight {
+    background: #fff3cd;
+    padding: 0.1rem 0.4rem;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  /* 模板 */
+  .template-block {
+    background: #f8fafc;
+    border-radius: 8px;
+    padding: 1rem 1.3rem;
+    margin: 0.8rem 0;
+    border: 1px solid var(--border);
+  }
+  .template-block h4 {
+    color: var(--accent);
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+  .template-block p {
+    font-size: 0.9rem;
+    color: var(--text-light);
+  }
+  /* 底部 */
+  .footer {
+    text-align: center;
+    color: #999;
+    font-size: 0.8rem;
+    padding: 2rem 0 1rem;
+  }
+  @media (max-width: 640px) {
+    body { padding: 1rem 0.5rem; }
+    .card { padding: 1.2rem 1rem; }
+    .hero { padding: 1.8rem 1.2rem; }
+    .hero h1 { font-size: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- 顶部标题 -->
+  <div class="hero">
+    <h1>📋 工程管理概论 · 复习资料</h1>
+    <p class="subtitle">工程项目管理模块 | 重点覆盖「开放式问题」与「计算题（网络图关键路径）」</p>
+  </div>
+
+  <!-- 导航 -->
+  <div class="toc">
+    <a href="#part1">核心概念</a>
+    <a href="#part2">计算题专攻</a>
+    <a href="#part3">答题模板</a>
+  </div>
+
+  <!-- ==================== 第一部分 ==================== -->
+  <div class="card" id="part1">
+    <h2><span class="emoji">📘</span> 第一部分：核心概念与高频考点</h2>
+    <p style="color:var(--text-light);font-size:0.9rem;margin-bottom:1rem;">问答形式 · 覆盖项目管理全流程，是论述题和分析题的基础</p>
+
+    <!-- 1. 基础 -->
+    <h3><span class="tag">1</span> 项目与工程管理基础</h3>
+    <div class="qa-item">
+      <div class="q">什么是工程项目？</div>
+      <div class="a">以建筑物、构筑物、基础设施等为交付成果，具有<strong>一次性</strong>、<strong>目标性</strong>、<strong>系统性</strong>、<strong>周期性</strong>的建设任务。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">工程项目三大核心目标是什么？</div>
+      <div class="a"><strong>质量目标</strong>、<strong>进度目标</strong>、<strong>成本目标</strong>（俗称"三驾马车"）。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">工程项目最本质的特征是什么？</div>
+      <div class="a"><strong>一次性</strong>、<strong>唯一性</strong>，不可重复。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">项目全生命周期分为哪几个阶段？</div>
+      <div class="a">决策阶段 → 设计阶段 → 实施施工阶段 → 竣工验收阶段 → 运营维护阶段。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">工程管理的核心内涵是什么？</div>
+      <div class="a">对项目全生命周期的<strong>质量、进度、成本、安全、风险、资源</strong>进行全方位统筹管控，保障项目目标落地。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">项目管理者的使命是什么？</div>
+      <div class="a">通过<strong>计划、组织、指挥、协调、控制</strong>，对有限资源（时间、成本、质量）进行优化配置和充分利用，满足利益相关者需求。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">项目管理五大要素是什么？</div>
+      <div class="a"><strong>客体</strong>（项目）、<strong>主体</strong>（管理者）、<strong>目的</strong>（达成目标）、<strong>职能</strong>（计划/组织/指挥/协调/控制）、<strong>依据</strong>（有限资源）。</div>
+    </div>
+
+    <!-- 2. 进度管理 -->
+    <h3><span class="tag warn">2</span> 进度管理 <span class="tag warn">计算题重点</span></h3>
+    <div class="qa-item">
+      <div class="q">常用进度管理工具有哪些？</div>
+      <div class="a">横道图（甘特图）、双代号网络图、单代号网络图。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">进度管理的主要目的？</div>
+      <div class="a">合理安排工序，保障项目<strong>按期完工</strong>。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">关键路径的定义？</div>
+      <div class="a">网络图中<strong>总持续时间最长的线路</strong>，决定项目总工期。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">关键工作的特点？</div>
+      <div class="a">位于关键路径上，<strong>总时差为 0</strong>，一旦延误直接导致总工期延长。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">总时差的定义？</div>
+      <div class="a">在不影响项目总工期的前提下，工作可拖延的<strong>机动时间</strong>。</div>
+    </div>
+
+    <!-- 3. 质量管理 -->
+    <h3><span class="tag">3</span> 质量管理</h3>
+    <div class="qa-item">
+      <div class="q">工程质量控制三阶段？</div>
+      <div class="a"><strong>事前控制</strong> → <strong>事中控制</strong> → <strong>事后控制</strong>。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">工程质量影响因素有哪些？</div>
+      <div class="a"><strong>人、材、机、法、环</strong>（人员、材料、机械、方法、环境）。</div>
+    </div>
+
+    <!-- 4. 成本管理 -->
+    <h3><span class="tag">4</span> 成本管理</h3>
+    <div class="qa-item">
+      <div class="q">成本管理的核心原则？</div>
+      <div class="a"><strong>全过程管控</strong>、<strong>全员管控</strong>、<strong>动态管控</strong>。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">成本管理包含哪些内容？</div>
+      <div class="a">成本预测 → 成本计划 → 成本控制 → 成本核算 → 成本分析与考核。</div>
+    </div>
+
+    <!-- 5. 安全管理 -->
+    <h3><span class="tag">5</span> 安全管理</h3>
+    <div class="qa-item">
+      <div class="q">安全管理方针是什么？</div>
+      <div class="a"><strong>安全第一、预防为主、综合治理</strong>。</div>
+    </div>
+
+    <!-- 6. 风险管理 -->
+    <h3><span class="tag">6</span> 风险管理 <span class="tag success">简答题高频</span></h3>
+    <div class="qa-item">
+      <div class="q">风险的特点？</div>
+      <div class="a">不确定性、客观性、可预测性、可管控性。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">常见工程项目风险有哪些？</div>
+      <div class="a">进度风险、成本风险、质量风险、安全风险、政策风险、自然风险、市场风险等。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">四种风险应对方式？</div>
+      <div class="a"><strong>风险规避</strong> · <strong>风险减轻</strong> · <strong>风险转移</strong> · <strong>风险自留</strong>。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">风险管理步骤？</div>
+      <div class="a">
+        <ol class="steps">
+          <li><strong>风险识别</strong>：找出所有潜在风险。</li>
+          <li><strong>风险分析与评估</strong>：判断概率和损失程度，分级。</li>
+          <li><strong>风险应对</strong>：制定规避、减轻、转移、自留等措施。</li>
+          <li><strong>风险监控</strong>：全过程动态跟踪，及时调整。</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 7. 项目组织 -->
+    <h3><span class="tag">7</span> 项目组织</h3>
+    <div class="qa-item">
+      <div class="q">常见组织结构形式？</div>
+      <div class="a">直线制、职能制、<strong>矩阵制</strong>。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">矩阵制组织结构的优缺点？</div>
+      <div class="a">
+        <strong>✅ 优点：</strong>资源利用率高、组织灵活性强、各专业沟通协作高效。<br>
+        <strong>⚠️ 缺点：</strong>存在多头领导，员工易接收多重指令，管理协调难度较大。
+      </div>
+    </div>
+
+    <!-- 8. 招投标与合同 -->
+    <h3><span class="tag">8</span> 招投标与合同</h3>
+    <div class="qa-item">
+      <div class="q">招投标的基本原则？</div>
+      <div class="a"><strong>公开、公平、公正、诚实守信</strong>。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">常见工程合同类型？</div>
+      <div class="a"><strong>总价合同</strong> · <strong>单价合同</strong> · <strong>成本加酬金合同</strong>。</div>
+    </div>
+  </div>
+
+  <!-- ==================== 第二部分 ==================== -->
+  <div class="card" id="part2">
+    <h2><span class="emoji">🧮</span> 第二部分：计算题专攻 —— 网络图与关键路径</h2>
+
+    <h3>核心知识点</h3>
+    <div class="qa-item">
+      <div class="q">关键路径</div>
+      <div class="a">网络图中<strong>总持续时间最长的线路</strong>。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">关键工作</div>
+      <div class="a">关键路径上的工作，<strong>总时差 = 0</strong>，延误即延长总工期。</div>
+    </div>
+    <div class="qa-item">
+      <div class="q">总工期</div>
+      <div class="a">关键路径的<strong>总持续时间</strong>。</div>
+    </div>
+
+    <h3>核心公式</h3>
+    <div class="formula-box">
+      EF = ES + D<br><br>
+      LS = LF - D<br><br>
+      TF = LS - ES = LF - EF
+    </div>
+    <p style="font-size:0.85rem;color:var(--text-light);text-align:center;margin-top:0.3rem;">
+      EF：最早完成 &nbsp;|&nbsp; ES：最早开始 &nbsp;|&nbsp; D：持续时间<br>
+      LS：最迟开始 &nbsp;|&nbsp; LF：最迟完成 &nbsp;|&nbsp; TF：总时差
+    </p>
+
+    <h3>通用解题步骤</h3>
+    <ol class="steps">
+      <li><strong>梳理所有线路</strong>：找出从起点到终点的所有可能路径。</li>
+      <li><strong>计算每条线路工期</strong>：将路径上所有工作的持续时间相加。</li>
+      <li><strong>确定关键路径与总工期</strong>：工期最长的那条线路就是关键路径，其持续时间即为项目总工期。</li>
+      <li><strong>计算工作时差</strong>（如有要求）：正推法算最早时间 (ES, EF)，逆推法算最迟时间 (LS, LF)，最后用公式算总时差。</li>
+    </ol>
+
+    <h3>📝 例题演练</h3>
+    <div class="example-box">
+      <h4>假设某项目各工作持续时间：A=3天, B=2天, C=4天, D=3天, E=5天</h4>
+      <p style="margin-bottom:0.5rem;"><strong>网络图逻辑关系：</strong></p>
+      <p>线路1：A → C → E</p>
+      <p>线路2：A → B → D → E</p>
+      <hr style="border:none;border-top:1px dashed #d4c5f0;margin:0.8rem 0;">
+      <p><strong>解题过程：</strong></p>
+      <ul style="list-style:none;padding:0;">
+        <li>线路1工期：3 + 4 + 5 = <strong>12天</strong></li>
+        <li>线路2工期：3 + 2 + 3 + 5 = <strong>13天</strong></li>
+      </ul>
+      <p style="margin-top:0.8rem;">
+        ∵ 线路2的工期(13天) &gt; 线路1的工期(12天)<br>
+        ∴ <span class="highlight">关键路径：A → B → D → E</span><br>
+        ∴ <span class="highlight">项目总工期：13天</span>
+      </p>
+    </div>
+
+    <h3>关键工作优化原则</h3>
+    <div class="qa-item">
+      <div class="a">
+        <ul style="padding-left:1.2rem;margin-top:0.3rem;">
+          <li>只能压缩<strong>关键工作</strong>。</li>
+          <li>优先压缩<strong>成本低、资源充足</strong>的工作。</li>
+          <li>压缩过程中可能出现<strong>多条关键路径</strong>，必须同时压缩。</li>
+          <li>不能将关键工作压成<strong>非关键工作</strong>。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 第三部分 ==================== -->
+  <div class="card" id="part3">
+    <h2><span class="emoji">📝</span> 第三部分：开放式问题答题模板</h2>
+    <p style="color:var(--text-light);font-size:0.9rem;margin-bottom:1.2rem;">案例分析题 · 从四个维度系统分析，无标准答案时套用此框架</p>
+
+    <div class="template-block">
+      <h4>🔍 1. 问题指出（What's wrong?）</h4>
+      <p>结合案例材料，明确指出项目在哪方面出了问题。</p>
+      <p style="margin-top:0.4rem;background:#e8f0fe;padding:0.6rem 1rem;border-radius:6px;font-size:0.88rem;">
+        📌 <em>"根据案例描述，该项目在<strong>【进度管理 / 成本管控 / 质量管控 / 安全管理 / 风险预判 / 组织管理 / 合同管理】</strong>方面存在以下问题：……"</em>
+      </p>
+    </div>
+
+    <div class="template-block">
+      <h4>🧠 2. 原因分析（Why does it happen?）</h4>
+      <p>从多个角度分析问题产生的根源：</p>
+      <ul style="padding-left:1.2rem;margin-top:0.4rem;font-size:0.9rem;color:var(--text-light);">
+        <li><strong>前期规划不足</strong>：可行性研究不充分，目标不清晰。</li>
+        <li><strong>管理制度不完善</strong>：缺乏有效的监督、沟通或考核机制。</li>
+        <li><strong>人员能力不足</strong>：项目经理或团队成员经验欠缺。</li>
+        <li><strong>风险意识薄弱</strong>：未能识别或低估潜在风险。</li>
+        <li><strong>资源调配不合理</strong>：人力、物资、资金未能及时到位。</li>
+        <li><strong>现场管控不到位</strong>：对施工过程的监控不力。</li>
+      </ul>
+    </div>
+
+    <div class="template-block">
+      <h4>🔧 3. 解决措施（How to fix it?）</h4>
+      <p>针对问题和原因，提出具体、可落地的改进方案：</p>
+      <ul style="padding-left:1.2rem;margin-top:0.4rem;font-size:0.9rem;color:var(--text-light);">
+        <li><strong>进度方面</strong>：优化施工进度计划，采用网络图科学排期；必要时增加资源或调整工作逻辑关系。</li>
+        <li><strong>成本方面</strong>：建立全过程成本管控体系，使用挣得值分析法动态监控。</li>
+        <li><strong>质量方面</strong>：严格落实三阶段（事前、事中、事后）质量控制，加强工序验收。</li>
+        <li><strong>安全方面</strong>：健全安全管理制度，落实责任到人，加强现场巡检。</li>
+        <li><strong>风险方面</strong>：建立动态风险监控机制，提前制定应急预案。</li>
+        <li><strong>组织方面</strong>：优化组织结构，明确职责分工，提升沟通效率。</li>
+        <li><strong>合同方面</strong>：规范合同与招投标管理，明确双方权责。</li>
+      </ul>
+    </div>
+
+    <div class="template-block">
+      <h4>✅ 4. 总结（Conclusion）</h4>
+      <p style="background:#e8f0fe;padding:0.6rem 1rem;border-radius:6px;font-size:0.88rem;">
+        📌 <em>"综上所述，一个成功的项目必须通过<strong>全生命周期、全要素</strong>的系统化管理，协调好<strong>质量、进度、成本</strong>三大核心目标，才能最终实现项目价值。"</em>
+      </p>
+    </div>
+  </div>
+
+  <div class="footer">
+    🎓 工程管理概论 · 工程项目管理模块 · 复习资料 &nbsp;|&nbsp; 祝考试顺利 ✨
+  </div>
+</div>
+</body>
+</html>
