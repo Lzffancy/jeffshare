@@ -189,11 +189,22 @@ echo "content/" >> .gitignore
 
 ## 本地构建与部署
 
-```bash
-# 构建（在服务器上）
-jeff-build          # 就是 docker run ... npm run build
+> ⚠️ **构建必须在 Docker 容器内完成，绝对不要在本机（CentOS 7）安装 Node.js！**
+>
+> 原因：生产服务器是 **CentOS 7，glibc 2.17**；而官方 Node.js 18+ 要求 **glibc ≥ 2.28**，
+> 直接在本机跑 `npm install` / `astro build` 会报 `GLIBC_2.28 not found`（之前在这个坑上卡过）。
+> 非官方的 `glibc-217` 兼容构建属于 experimental、无长期维护保证，**不要依赖**。
+> **正确姿势：用 Node 官方镜像起一个临时容器，在容器里 `npm install && astro build`，构建完容器即销毁，宿主机全程不需要 Node。**
 
-# 开发模式（需要本地 Node.js，不能在服务器上跑因为没装 Node）
+```bash
+# 构建（在 site/ 目录下，必须用 Docker）
+cd site
+docker run --rm -v "$PWD":/app -w /app node:20-alpine \
+  sh -c "npm install && npm run build"
+# 构建产物输出到 site/dist/（已被 site/.gitignore 忽略，不进 git）。
+# 用 alpine 镜像是因为依赖里是 @tailwindcss/oxide-linux-x64-musl（musl 版），别换成 debian 镜像。
+
+# 开发模式（需要本地 Node.js —— 在「自己开发机」上跑，不要在服务器上跑）
 cd site && npm run dev    # 启动热重载开发服务器
 
 # 部署
@@ -201,13 +212,16 @@ git add . && git commit && git push origin main
 # Post-receive hook 自动执行：
 #   1. git checkout -f main
 #   2. pip install  （Python 依赖）
-#   3. jeff-build    （Astro 静态站点构建）
+#   3. docker run ... npm run build  （Astro 静态站点 Docker 构建，见上）
 #   4. systemctl restart jeff_share_svr  （API 服务）
 #   5. systemctl reload caddy            （Web 服务器）
 
 # 查看部署日志
 sudo journalctl -u jeff_share_svr -f
 ```
+
+> 📌 想彻底去掉 Docker？只有把宿主机换成 **glibc ≥ 2.28** 的系统（如 Ubuntu 24.04）后，
+> 才能直接装 Node 跑构建。在 CentOS 7 上不要尝试本地装 Node。
 
 ## 环境依赖
 
