@@ -1,0 +1,68 @@
+---
+// Serve share HTML files from content/share/, injecting site navigation
+import fs from "node:fs";
+import path from "node:path";
+
+export async function getStaticPaths() {
+  const shareDir = path.resolve("../content/share");
+  const paths: { params: { path: string } }[] = [];
+
+  function walk(dir: string, relative: string) {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const relPath = relative ? `${relative}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) {
+        paths.push({ params: { path: relPath } });
+        walk(path.join(dir, entry.name), relPath);
+      } else {
+        // Strip .html extension for clean URLs
+        const cleanPath = relPath.replace(/\.html$/, "");
+        paths.push({ params: { path: cleanPath } });
+      }
+    }
+  }
+
+  walk(shareDir, "");
+  return paths;
+}
+
+const { path: reqPath } = Astro.params;
+
+// Try with .html extension first
+let filePath = path.resolve("../content/share", `${reqPath}.html`);
+if (!fs.existsSync(filePath)) {
+  filePath = path.resolve("../content/share", reqPath ?? "");
+}
+// If it's a directory, look for index.html
+if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
+  filePath = path.join(filePath, "index.html");
+}
+
+if (!fs.existsSync(filePath) || !fs.statSync(filePath).isFile()) {
+  return Astro.redirect("/404");
+}
+
+const html = fs.readFileSync(filePath, "utf-8");
+
+// Inject site nav bar at the top of existing HTML pages
+const navBar = `
+<div style="background:linear-gradient(135deg,#0b1e3d,#003087);color:#fff;padding:8px 20px;font-family:system-ui,sans-serif;display:flex;align-items:center;gap:16px;font-size:14px;position:sticky;top:0;z-index:999;">
+  <a href="/" style="color:#fff;font-weight:700;text-decoration:none;">🏠 Jeff 的工作台</a>
+  <a href="/blog" style="color:rgba(255,255,255,0.85);text-decoration:none;">Blog</a>
+  <a href="/reports" style="color:rgba(255,255,255,0.85);text-decoration:none;">Reports</a>
+  <a href="/share" style="color:rgba(255,255,255,0.85);text-decoration:none;">Share</a>
+</div>
+`;
+
+// Insert nav bar after <body> tag, or prepend to whole document
+let result: string;
+if (html.includes("<body")) {
+  result = html.replace(/<body[^>]*>/i, (match) => match + navBar);
+} else {
+  result = navBar + html;
+}
+
+return new Response(result, {
+  status: 200,
+  headers: { "Content-Type": "text/html; charset=utf-8" },
+});

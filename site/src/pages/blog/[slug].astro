@@ -1,0 +1,48 @@
+---
+import { getCollection, getEntry, render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("blog");
+  return posts.map((p) => ({ params: { slug: p.id } }));
+}
+
+const { slug } = Astro.params;
+const post = await getEntry("blog", slug!);
+
+if (!post) {
+  return Astro.redirect("/404");
+}
+
+const { Content } = await render(post);
+---
+
+<BaseLayout title={`${post.data.title} — Jeff 的工作台`}>
+  <div class="max-w-3xl mx-auto px-5 py-10">
+    <a href="/blog" class="text-sm text-primary hover:text-accent transition-colors no-underline mb-4 inline-block">
+      &larr; 返回博客列表
+    </a>
+
+    <article>
+      <header class="mb-8">
+        <h1 class="text-3xl font-extrabold text-primary">{post.data.title}</h1>
+        <div class="flex flex-wrap items-center gap-2 mt-3">
+          <span class="text-sm text-base-content/40">
+            {post.data.date.toISOString().slice(0, 10)}
+          </span>
+          {post.data.tags.map((t: string) => (
+            <span class="badge badge-sm bg-[#e8f4fd] text-[#0277bd] border-0">{t}</span>
+          ))}
+        </div>
+      </header>
+
+      <div class="post-content">
+        <Content />
+      </div>
+    </article>
+
+    <div class="mt-10 pt-6 border-t border-base-300">
+      <a href="/blog" class="btn btn-outline btn-sm">&larr; 返回博客列表</a>
+    </div>
+  </div>
+</BaseLayout>

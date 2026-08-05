@@ -1,0 +1,100 @@
+---
+import fs from "node:fs";
+import path from "node:path";
+import { getCollection } from "astro:content";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Hero from "../components/Hero.astro";
+import Card from "../components/Card.astro";
+
+const posts = (await getCollection("blog"))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+// Scan reports directories manually
+const reportsDir = path.resolve("../content/reports");
+let reportCount = 0;
+let reportNames: string[] = [];
+if (fs.existsSync(reportsDir)) {
+  const entries = fs.readdirSync(reportsDir, { withFileTypes: true });
+  reportNames = entries.filter((e) => e.isDirectory()).map((e) => e.name);
+  reportCount = reportNames.length;
+}
+
+const badgeCounts = [
+  { label: "文章", value: posts.length },
+  { label: "报告", value: reportCount },
+];
+---
+
+<BaseLayout>
+  <Hero
+    title="Jeff 的工作台"
+    subtitle="个人博客 · 研究报告 · 分享工作台"
+    badgeCounts={badgeCounts}
+  />
+
+  <!-- Content cards -->
+  <div class="max-w-4xl mx-auto -mt-6 relative z-10 px-5 pb-10">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Blog card -->
+      <Card
+        href="/blog"
+        title="Blog"
+        description="技术博客，记录学习与实践心得"
+        icon="📝"
+        gradientClass="from-[#e8f0fe] to-[#d4e4fc]"
+        tags={posts.slice(0, 3).map((p) => p.data.tags).flat().filter((v, i, a) => a.indexOf(v) === i).slice(0, 3)}
+      />
+
+      <!-- Reports card -->
+      <Card
+        href="/reports"
+        title="Reports"
+        description="研究报告文件柜，每份报告一个独立目录"
+        icon="📊"
+        gradientClass="from-[#fef3e2] to-[#fde8c8]"
+        tags={reportNames.slice(0, 3)}
+      />
+
+      <!-- Share card -->
+      <Card
+        href="/share"
+        title="Share"
+        description="分享工作台，论文笔记与静态页面"
+        icon="📤"
+        gradientClass="from-[#f3e8ff] to-[#e2d4fc]"
+      />
+    </div>
+
+    <!-- Recent posts quick list -->
+    {
+      posts.length > 0 && (
+        <div class="mt-10">
+          <h2 class="text-xl font-bold text-primary mb-4">📌 最新文章</h2>
+          <ul class="divide-y divide-base-300 bg-base-100 rounded-box shadow-sm px-4">
+            {posts.slice(0, 5).map((post) => (
+              <li class="py-3">
+                <a href={`/blog/${post.id}`} class="text-primary font-semibold hover:text-accent transition-colors no-underline">
+                  {post.data.title}
+                </a>
+                <span class="text-sm text-base-content/40 ml-2">
+                  {post.data.date.toISOString().slice(0, 10)}
+                </span>
+                <div class="flex flex-wrap gap-1 mt-1">
+                  {post.data.tags.map((t: string) => (
+                    <span class="badge badge-xs bg-[#e8f4fd] text-[#0277bd] border-0">{t}</span>
+                  ))}
+                </div>
+              </li>
+            ))}
+          </ul>
+          {posts.length > 5 && (
+            <div class="text-center mt-4">
+              <a href="/blog" class="btn btn-primary btn-sm">查看全部 {posts.length} 篇文章 &rarr;</a>
+            </div>
+          )}
+        </div>
+      )
+    }
+  </div>
+</BaseLayout>

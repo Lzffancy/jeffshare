@@ -1,0 +1,36 @@
+---
+interface Props {
+  href: string;
+  title: string;
+  description?: string;
+  icon?: string;
+  tags?: string[];
+  gradientClass?: string;
+}
+
+const {
+  href,
+  title,
+  description = "",
+  icon = "📄",
+  tags = [],
+  gradientClass = "from-[#e8f0fe] to-[#d4e4fc]",
+} = Astro.props;
+---
+
+<a href={href} class="card bg-base-100 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-200 no-underline overflow-hidden group">
+  <figure class={`h-36 flex items-center justify-center text-5xl bg-gradient-to-br ${gradientClass} group-hover:scale-105 transition-transform duration-300`}>
+    {icon}
+  </figure>
+  <div class="card-body p-5">
+    <h2 class="card-title text-primary text-lg">{title}</h2>
+    {description && <p class="text-sm text-base-content/60 leading-relaxed mt-1">{description}</p>}
+    {tags.length > 0 && (
+      <div class="card-actions mt-3 flex flex-wrap gap-1.5">
+        {tags.map((t) => (
+          <span class="badge badge-sm bg-[#e8f4fd] text-[#0277bd] border-0">{t}</span>
+        ))}
+      </div>
+    )}
+  </div>
+</a>

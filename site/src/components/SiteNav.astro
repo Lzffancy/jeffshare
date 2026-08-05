@@ -1,0 +1,27 @@
+<nav class="navbar sticky top-0 z-50 bg-gradient-to-r from-[#0b1e3d] via-primary to-secondary shadow-lg px-4">
+  <div class="navbar-start">
+    <a href="/" class="text-white font-extrabold text-lg tracking-wide no-underline">
+      🏠 Jeff 的工作台
+    </a>
+  </div>
+  <div class="navbar-end hidden sm:flex gap-4">
+    <a href="/" class="text-white/85 hover:text-white text-sm font-medium no-underline transition">首页</a>
+    <a href="/blog" class="text-white/85 hover:text-white text-sm font-medium no-underline transition">Blog</a>
+    <a href="/reports" class="text-white/85 hover:text-white text-sm font-medium no-underline transition">Reports</a>
+    <a href="/share" class="text-white/85 hover:text-white text-sm font-medium no-underline transition">Share</a>
+  </div>
+  <!-- Mobile dropdown -->
+  <div class="navbar-end sm:hidden dropdown dropdown-end">
+    <label tabindex="0" class="btn btn-ghost btn-sm text-white">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+    </label>
+    <ul tabindex="0" class="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-40 mt-3 z-50">
+      <li><a href="/">首页</a></li>
+      <li><a href="/blog">Blog</a></li>
+      <li><a href="/reports">Reports</a></li>
+      <li><a href="/share">Share</a></li>
+    </ul>
+  </div>
+</nav>

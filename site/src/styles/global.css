@@ -1,0 +1,76 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+/* ---- daisyUI theme: jeff-workbench --------------------
+   --primary: #003087 (藏蓝)
+   --accent: #e87722 (橙色)
+   --bg: #f0f2f5
+   --text: #1a1a2e
+   ---------------------------------------------------- */
+@plugin "daisyui/theme" {
+  name: "jeff-workbench";
+  default: true;
+  --color-primary: #003087;
+  --color-primary-content: #ffffff;
+  --color-secondary: #1a5cb5;
+  --color-secondary-content: #ffffff;
+  --color-accent: #e87722;
+  --color-accent-content: #ffffff;
+  --color-neutral: #1a1a2e;
+  --color-neutral-content: #f0f2f5;
+  --color-base-100: #ffffff;
+  --color-base-200: #f0f2f5;
+  --color-base-300: #e2e8f0;
+  --color-base-content: #1a1a2e;
+  --color-info: #3b82f6;
+  --color-info-content: #ffffff;
+  --color-success: #10b981;
+  --color-success-content: #ffffff;
+  --color-warning: #f59e0b;
+  --color-warning-content: #ffffff;
+  --color-error: #ef4444;
+  --color-error-content: #ffffff;
+  --radius-box: 1rem;
+  --radius-btn: 0.5rem;
+  --radius-field: 0.5rem;
+  --rounded-box: 1rem;
+  --rounded-btn: 0.5rem;
+}
+
+/* ---- Markdown content styles ---- */
+.post-content h1,
+.post-content h2,
+.post-content h3 {
+  color: var(--color-primary);
+  margin-top: 1.5rem;
+}
+.post-content p {
+  margin: 0.75rem 0;
+}
+.post-content code {
+  background: #f0f0f0;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+.post-content pre {
+  background: #0b1e3d;
+  color: #ecf0f1;
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+.post-content pre code {
+  background: none;
+  padding: 0;
+}
+.post-content blockquote {
+  border-left: 4px solid var(--color-accent);
+  padding-left: 1rem;
+  color: #666;
+  margin: 1rem 0;
+}
+.post-content img {
+  max-width: 100%;
+  border-radius: 0.5rem;
+}

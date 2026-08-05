@@ -1,0 +1,44 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const posts = (await getCollection("blog"))
+  .filter((p) => !p.data.draft)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+---
+
+<BaseLayout title="Blog — Jeff 的工作台">
+  <div class="max-w-3xl mx-auto px-5 py-10">
+    <div class="mb-8">
+      <h1 class="text-3xl font-extrabold text-primary">Blog</h1>
+      <p class="text-base-content/60 mt-1">共 {posts.length} 篇文章</p>
+    </div>
+
+    {
+      posts.length === 0 ? (
+        <p class="text-base-content/40 italic">还没有文章，敬请期待。</p>
+      ) : (
+        <ul class="divide-y divide-base-300 bg-base-100 rounded-box shadow-sm px-5">
+          {posts.map((post) => (
+            <li class="py-4">
+              <a
+                href={`/blog/${post.id}`}
+                class="text-lg font-semibold text-primary hover:text-accent transition-colors no-underline"
+              >
+                {post.data.title}
+              </a>
+              <div class="flex flex-wrap items-center gap-2 mt-1">
+                <span class="text-sm text-base-content/40">
+                  {post.data.date.toISOString().slice(0, 10)}
+                </span>
+                {post.data.tags.map((t) => (
+                  <span class="badge badge-xs bg-[#e8f4fd] text-[#0277bd] border-0">{t}</span>
+                ))}
+              </div>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</BaseLayout>

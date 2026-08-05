@@ -1,0 +1,59 @@
+---
+// Serve report files as static content from content/reports/
+import fs from "node:fs";
+import path from "node:path";
+
+export async function getStaticPaths() {
+  const reportsDir = path.resolve("../content/reports");
+  const paths: { params: { path: string } }[] = [];
+
+  function walk(dir: string, relative: string) {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const relPath = relative ? `${relative}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) {
+        // Only add directory path — don't add individual files inside;
+        // they'll be served at render time via the catch-all
+        paths.push({ params: { path: relPath } });
+        walk(path.join(dir, entry.name), relPath);
+      }
+    }
+  }
+
+  walk(reportsDir, "");
+  return paths;
+}
+
+const { path: reqPath } = Astro.params;
+const filePath = path.resolve("../content/reports", reqPath ?? "");
+
+if (!fs.existsSync(filePath)) {
+  return Astro.redirect("/404");
+}
+
+const stat = fs.statSync(filePath);
+
+if (stat.isDirectory()) {
+  const indexPath = path.join(filePath, "index.html");
+  if (fs.existsSync(indexPath)) {
+    const content = fs.readFileSync(indexPath, "utf-8");
+    return new Response(content, {
+      status: 200,
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
+  }
+  // Show directory listing
+  const files = fs.readdirSync(filePath).filter((f) => !f.startsWith("."));
+  const parentPath = reqPath?.includes("/") ? reqPath.split("/").slice(0, -1).join("/") : "";
+  return new Response(
+    `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${reqPath}</title>
+<style>body{font-family:system-ui,sans-serif;max-width:800px;margin:0 auto;padding:20px;}
+a{color:#003087;text-decoration:none;}a:hover{color:#e87722;}li{margin:8px 0;}</style></head>
+<body><h1>📊 ${reqPath || "Reports"}</h1>
+<ul>${files.map((f) => `<li><a href="${reqPath ? reqPath + "/" + f : f}">${f}</a></li>`).join("")}</ul>
+<p><a href="/reports">&larr; 返回报告列表</a></p></body></html>`,
+    { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
+  );
+}
+
+return Astro.redirect("/404");

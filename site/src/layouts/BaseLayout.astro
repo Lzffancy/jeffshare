@@ -1,0 +1,32 @@
+---
+import SiteNav from "../components/SiteNav.astro";
+
+export interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title = "Jeff 的工作台", description = "个人博客 · 研究报告 · 分享工作台" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="zh-CN" data-theme="jeff-workbench">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+    <link rel="stylesheet" href="/styles/global.css" />
+  </head>
+  <body class="bg-base-200 text-base-content min-h-screen flex flex-col">
+    <SiteNav />
+
+    <main class="flex-1">
+      <slot />
+    </main>
+
+    <footer class="text-center py-6 text-sm text-base-content/50 border-t border-base-300 mt-auto">
+      Power By JeffAgent
+    </footer>
+  </body>
+</html>

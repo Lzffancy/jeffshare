@@ -1,16 +1,18 @@
-import re
+"""
+Jeff 的工作台 — FastAPI 后端
+职责：Decap CMS OAuth 中转 + 未来业务 API 骨架
+页面渲染已迁移至 Astro 静态站点
+"""
 import json
 import uuid
 import time
 import logging
 import contextvars
-from pathlib import Path
-from datetime import date
+import os
+
+import httpx
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from markdown_it import MarkdownIt
-import frontmatter
+from fastapi.responses import RedirectResponse
 
 # ── logging ──────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -18,50 +20,25 @@ logging.basicConfig(
     format="%(asctime)s | %(levelname)-5s | %(message)s",
     datefmt="%Y-%m-%d %H:%M:%S",
 )
-logger = logging.getLogger("blog")
+logger = logging.getLogger("jeff-api")
 trace_id_var: contextvars.ContextVar[str] = contextvars.ContextVar("trace_id", default="-")
 
-# 关闭 uvicorn 自带 access log（我们的中间件已输出 REQ/RSP）
+# 关闭 uvicorn 自带 access log
 logging.getLogger("uvicorn.access").setLevel(logging.WARNING)
 
 
-# ── helpers ───────────────────────────────────────────────────────────
-def plain_preview(md_text: str, max_len: int = 120) -> str:
-    """Strip markdown formatting to produce a plain-text preview."""
-    text = re.sub(r'```[\s\S]*?```', '', md_text)
-    text = re.sub(r'`[^`]+`', '', text)
-    text = re.sub(r'!\[.*?\]\(.*?\)', '', text)
-    text = re.sub(r'\[([^\]]*)\]\(.*?\)', r'\1', text)
-    text = re.sub(r'^#{1,6}\s+', '', text, flags=re.MULTILINE)
-    text = re.sub(r'\*{1,3}([^*]+)\*{1,3}', r'\1', text)
-    text = re.sub(r'\s+', ' ', text).strip()
-    if len(text) > max_len:
-        text = text[:max_len].rsplit(' ', 1)[0] + '…'
-    return text
-
-
 # ── app ───────────────────────────────────────────────────────────────
-BASE_DIR = Path(__file__).resolve().parent.parent
-CONTENT_DIR = BASE_DIR / "content"
-
-app = FastAPI(title="Personal Blog & Reports")
-
-app.mount("/static", StaticFiles(directory=BASE_DIR / "app" / "static"), name="static")
-templates = Jinja2Templates(directory=BASE_DIR / "app" / "templates")
-
-md = MarkdownIt("commonmark", {"html": True}).enable("table")
+app = FastAPI(title="Jeff 的工作台 — API")
 
 
 # ── trace-log middleware ──────────────────────────────────────────────
 @app.middleware("http")
 async def trace_log_middleware(request: Request, call_next):
-    # trace_id: use incoming header or generate 12-char hex
     trace_id = request.headers.get("X-Trace-Id") or uuid.uuid4().hex[:12]
     trace_id_var.set(trace_id)
 
     start_ts = time.time()
 
-    # ── REQ: 完整 HTTP 请求信息 ──
     scheme = request.headers.get("X-Forwarded-Proto", request.url.scheme)
     req_payload = {
         "trace_id": trace_id,
@@ -78,104 +55,91 @@ async def trace_log_middleware(request: Request, call_next):
     }
     logger.info(f"REQ | {json.dumps(req_payload, ensure_ascii=False)}")
 
-    # ── process ──
     response = await call_next(request)
 
-    # ── RSP: HTML/Markdown 页面只打印资源路径 ──
     duration_ms = round((time.time() - start_ts) * 1000, 1)
-    content_type = response.headers.get("content-type", "")
-
-    if "text/html" in content_type or "text/markdown" in content_type:
-        rsp_detail = f"path={request.url.path} type=page"
-    else:
-        rsp_detail = (
-            f"path={request.url.path} "
-            f"status={response.status_code} "
-            f"content_type={content_type} "
-            f"size={response.headers.get('content-length', '-')}"
-        )
-
+    rsp_detail = (
+        f"path={request.url.path} "
+        f"status={response.status_code} "
+        f"content_type={response.headers.get('content-type', '-')} "
+        f"size={response.headers.get('content-length', '-')}"
+    )
     logger.info(f"RSP | trace_id={trace_id} | {rsp_detail} | duration={duration_ms}ms")
 
     response.headers["X-Trace-Id"] = trace_id
     return response
 
 
-# ── content loaders ───────────────────────────────────────────────────
-def load_posts():
-    posts = []
-    posts_dir = CONTENT_DIR / "posts"
-    if not posts_dir.exists():
-        return posts
-    for f in sorted(posts_dir.glob("*.md")):
-        try:
-            post = frontmatter.load(f)
-            posts.append({
-                "slug":    f.stem,
-                "title":   post.get("title", f.stem),
-                "date":    post.get("date", date.today()),
-                "tags":    post.get("tags", []),
-                "content": post.content,
-                "preview": plain_preview(post.content),
-            })
-        except Exception:
-            raw = f.read_text(encoding="utf-8")
-            posts.append({
-                "slug":    f.stem,
-                "title":   f.stem,
-                "date":    date.today(),
-                "tags":    [],
-                "content": raw,
-                "preview": plain_preview(raw),
-            })
-    return sorted(posts, key=lambda p: p["date"], reverse=True)
+# ── health check ──────────────────────────────────────────────────────
+@app.get("/api/health")
+def health():
+    return {"status": "ok"}
 
 
-def load_reports():
-    reports = []
-    reports_dir = CONTENT_DIR / "reports"
-    if not reports_dir.exists():
-        return reports
-    for d in sorted(reports_dir.iterdir()):
-        if d.is_dir():
-            reports.append({
-                "name":  d.name,
-                "files": sorted([f.name for f in d.iterdir()]),
-            })
-    return reports
+# ── Decap CMS GitHub OAuth ───────────────────────────────────────────
+GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "")
+GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "")
+GITHUB_AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
+GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token"
+SITE_URL = os.getenv("SITE_URL", "https://jeff.work")
 
 
-# ── routes ────────────────────────────────────────────────────────────
-@app.get("/")
-def index(request: Request):
-    return templates.TemplateResponse(request, "index.html", {
-        "posts":   load_posts()[:5],
-        "reports": load_reports(),
-    })
+@app.get("/admin-auth/github")
+async def github_auth():
+    """Redirect user to GitHub OAuth authorize page."""
+    if not GITHUB_CLIENT_ID:
+        raise HTTPException(500, detail="GITHUB_CLIENT_ID not configured")
+    params = {
+        "client_id": GITHUB_CLIENT_ID,
+        "scope": "repo,user",
+        "redirect_uri": f"{SITE_URL}/admin-auth/github/callback",
+    }
+    qs = "&".join(f"{k}={v}" for k, v in params.items())
+    return RedirectResponse(f"{GITHUB_AUTHORIZE_URL}?{qs}")
 
 
-@app.get("/blog")
-def blog_list(request: Request):
-    return templates.TemplateResponse(request, "blog_list.html", {
-        "posts": load_posts(),
-    })
+@app.get("/admin-auth/github/callback")
+async def github_callback(code: str = None, error: str = None, error_description: str = None):
+    """GitHub OAuth callback — exchange code for access token."""
+    if error:
+        raise HTTPException(400, detail=f"GitHub OAuth error: {error} — {error_description}")
+    if not code:
+        raise HTTPException(400, detail="Missing authorization code")
+    if not GITHUB_CLIENT_ID or not GITHUB_CLIENT_SECRET:
+        raise HTTPException(500, detail="GitHub OAuth credentials not configured")
 
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            GITHUB_TOKEN_URL,
+            json={
+                "client_id": GITHUB_CLIENT_ID,
+                "client_secret": GITHUB_CLIENT_SECRET,
+                "code": code,
+                "redirect_uri": f"{SITE_URL}/admin-auth/github/callback",
+            },
+            headers={"Accept": "application/json"},
+        )
+        if resp.status_code != 200:
+            raise HTTPException(500, detail=f"Token exchange failed: {resp.text}")
+        data = resp.json()
+        access_token = data.get("access_token")
+        if not access_token:
+            raise HTTPException(500, detail=f"No access_token in response: {data}")
 
-@app.get("/blog/{slug}")
-def blog_post(request: Request, slug: str):
-    posts = {p["slug"]: p for p in load_posts()}
-    if slug not in posts:
-        raise HTTPException(404, detail="Post not found")
-    post = posts[slug]
-    html = md.render(post["content"])
-    return templates.TemplateResponse(request, "blog_post.html", {
-        "post": post,
-        "html": html,
-    })
+    # Decap CMS expects the token posted back to its origin via postMessage
+    # Return an HTML page that does this
+    html = f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body>
+<script>
+  window.opener.postMessage(
+    {{ token: "{access_token}", provider: "github" }},
+    "{SITE_URL}"
+  );
+  window.close();
+</script>
+<p>登录成功，窗口即将关闭...</p>
+</body></html>"""
 
-
-@app.get("/reports")
-def reports_list(request: Request):
-    return templates.TemplateResponse(request, "reports_list.html", {
-        "reports": load_reports(),
-    })
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(content=html)

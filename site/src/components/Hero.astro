@@ -1,0 +1,36 @@
+---
+interface Props {
+  title?: string;
+  subtitle?: string;
+  badgeCounts?: { label: string; value: number }[];
+}
+
+const { title = "Jeff 的工作台", subtitle = "个人博客 · 研究报告 · 分享工作台", badgeCounts = [] } = Astro.props;
+---
+
+<div class="relative overflow-hidden bg-gradient-to-br from-[#0b1e3d] via-primary to-secondary text-white text-center py-16 px-6">
+  <!-- Glow spots -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute bottom-1/4 left-1/5 w-72 h-72 rounded-full bg-accent/15 blur-3xl"></div>
+    <div class="absolute top-1/5 right-1/5 w-72 h-72 rounded-full bg-blue-500/20 blur-3xl"></div>
+  </div>
+
+  <h1 class="relative z-10 text-3xl sm:text-4xl font-extrabold tracking-wide">
+    {title}
+  </h1>
+  <p class="relative z-10 text-base sm:text-lg text-white/80 mt-2">
+    {subtitle}
+  </p>
+
+  {
+    badgeCounts.length > 0 && (
+      <div class="relative z-10 mt-5 flex flex-wrap justify-center gap-2">
+        {badgeCounts.map((b) => (
+          <span class="text-xs px-3 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur">
+            {b.label}: {b.value}
+          </span>
+        ))}
+      </div>
+    )
+  }
+</div>
