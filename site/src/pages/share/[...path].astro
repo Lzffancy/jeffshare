@@ -15,6 +15,8 @@ export async function getStaticPaths() {
         paths.push({ params: { path: relPath } });
         walk(path.join(dir, entry.name), relPath);
       } else {
+        // Skip index.html (handled by share/index.astro)
+        if (entry.name === "index.html") continue;
         // Strip .html extension for clean URLs
         const cleanPath = relPath.replace(/\.html$/, "");
         paths.push({ params: { path: cleanPath } });
