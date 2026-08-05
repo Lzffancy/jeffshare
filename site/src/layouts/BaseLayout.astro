@@ -1,5 +1,6 @@
 ---
 import SiteNav from "../components/SiteNav.astro";
+import "../styles/global.css";
 
 export interface Props {
   title?: string;
@@ -16,7 +17,6 @@ const { title = "Jeff 的工作台", description = "个人博客 · 研究报告
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <title>{title}</title>
-    <link rel="stylesheet" href="/styles/global.css" />
   </head>
   <body class="bg-base-200 text-base-content min-h-screen flex flex-col">
     <SiteNav />
