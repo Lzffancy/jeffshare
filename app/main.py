@@ -84,7 +84,7 @@ GITHUB_CLIENT_ID = os.getenv("GITHUB_CLIENT_ID", "")
 GITHUB_CLIENT_SECRET = os.getenv("GITHUB_CLIENT_SECRET", "")
 GITHUB_AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
 GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token"
-SITE_URL = os.getenv("SITE_URL", "https://jeff.work")
+SITE_URL = os.getenv("SITE_URL", "https://jeffshare.com")
 
 
 @app.get("/admin-auth/github")
@@ -153,7 +153,7 @@ GRAFFITI_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 
 
 class GraffitiPayload(BaseModel):
-    image: str | None = None  # base64 data URL or null (clear)
+    image: str  # base64 data URL (PNG)
 
 
 def _graffiti_filepath(date_str: str | None = None) -> str:
@@ -194,14 +194,11 @@ def graffiti_get():
 
 @app.post("/api/graffiti")
 def graffiti_post(payload: GraffitiPayload):
-    """保存或清除今日涂鸦。image 为 null 时删除今日文件。"""
-    filepath = _graffiti_filepath()
+    """保存今日涂鸦（覆盖式写入）。image 必须为 base64 PNG 数据。"""
+    if not payload.image:
+        raise HTTPException(status_code=400, detail="image 不能为空")
 
-    if payload.image is None:
-        if os.path.isfile(filepath):
-            os.remove(filepath)
-            logger.info("graffiti: cleared today's drawing")
-        return {"status": "cleared"}
+    filepath = _graffiti_filepath()
 
     # 解析 base64 data URL: "data:image/png;base64,xxxxx"
     raw = payload.image

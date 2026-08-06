@@ -2,7 +2,7 @@ backend:
   name: github
   repo: Lzffancy/jeffshare
   branch: main
-  base_url: https://jeff.work
+  base_url: https://jeffshare.com
   auth_endpoint: /admin-auth/github
   squash_merges: true
 
@@ -11,9 +11,9 @@ publish_mode: editorial_workflow
 media_folder: "content/images"
 public_folder: "/images"
 
-site_url: https://jeff.work
-display_url: https://jeff.work
-logo_url: https://jeff.work/favicon.ico
+site_url: https://jeffshare.com
+display_url: https://jeffshare.com
+logo_url: https://jeffshare.com/favicon.ico
 
 locale: zh_Hans
 

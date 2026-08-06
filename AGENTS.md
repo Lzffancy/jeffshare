@@ -28,7 +28,7 @@
 ## 如何发布内容
 
 ### 方式一：网页后台 (Decap CMS)
-访问 `https://jeff.work/admin/` → GitHub OAuth 登录 → 表单编辑 → 保存即自动 git commit + push
+访问 `https://jeffshare.com/admin/` → GitHub OAuth 登录 → 表单编辑 → 保存即自动 git commit + push
 
 ### 方式二：Git 手写发布
 在 `content/posts/` 下新建 `.md` 文件，frontmatter 格式:

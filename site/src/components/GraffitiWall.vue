@@ -47,10 +47,6 @@
       </div>
 
       <div class="flex-1"></div>
-
-      <button class="btn btn-outline btn-xs border-accent text-accent hover:bg-accent hover:text-white" @click="clearCanvas">
-        清除画面
-      </button>
     </div>
 
     <!-- 画布区域 -->
@@ -227,32 +223,6 @@ function saveGraffiti() {
     .catch((err) => {
       console.error("保存涂鸦失败:", err);
       savingStatus.value = "保存失败";
-    });
-}
-
-function clearCanvas() {
-  const canvas = canvasRef.value;
-  if (!canvas) return;
-  const context = canvas.getContext("2d");
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  context.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-
-  savingStatus.value = "清除中...";
-  fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ image: null }),
-  })
-    .then((res) => res.json())
-    .then(() => {
-      savingStatus.value = "已清除";
-      setTimeout(() => {
-        savingStatus.value = "准备就绪";
-      }, 1500);
-    })
-    .catch((err) => {
-      console.error("清除涂鸦失败:", err);
-      savingStatus.value = "清除失败";
     });
 }
 
