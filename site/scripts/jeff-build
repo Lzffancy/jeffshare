@@ -1,0 +1,52 @@
+#!/bin/bash
+# Jeff 的工作台 — Astro 构建脚本（复用预装依赖的镜像，按需自动重建）
+# 供 post-receive hook 和手动构建使用
+#
+# 镜像 jeff-astro-builder 已用 `npm ci` 把 node_modules 烤进镜像。
+# 用 package.json + package-lock.json + .npmrc 的 SHA256 作为依赖指纹，
+# 给镜像打 `jeff-astro-builder:<hash>` 标签：
+#   - 标签已存在 → 直接复用，跳过 npm install
+#   - 依赖变更（指纹变化）→ 自动重建镜像并刷新标签
+#
+# 运行时只挂载 site 的子目录（不挂载 /app 根，否则会盖掉镜像里的 node_modules），
+# 因此直接 `npm run build` 即可。
+
+set -e
+
+SITE_DIR="/data/jeff_share_svr/site"
+CONTENT_DIR="/data/jeff_share_svr/content"
+BASE_IMAGE="jeff-astro-builder"
+
+# 1) 计算依赖指纹
+DEPS_HASH=$(cat "${SITE_DIR}/package.json" "${SITE_DIR}/package-lock.json" "${SITE_DIR}/.npmrc" 2>/dev/null \
+  | sha256sum | cut -d' ' -f1)
+IMAGE_TAG="${BASE_IMAGE}:${DEPS_HASH}"
+
+# 2) 指纹对应镜像不存在则自动重建
+if ! docker image inspect "${IMAGE_TAG}" >/dev/null 2>&1; then
+  echo "[jeff-build] 依赖指纹变化(${DEPS_HASH})，重建构建镜像..."
+  cd "${SITE_DIR}"
+  docker build -t "${IMAGE_TAG}" -t "${BASE_IMAGE}" -f Dockerfile.builder . 2>&1 | tail -5
+
+  # 清理旧的 hash 标签镜像，避免无限堆积
+  for old in $(docker images --format '{{.Repository}}:{{.Tag}}' \
+                | grep "^${BASE_IMAGE}:" | grep -v ":${DEPS_HASH}$"); do
+    docker rmi "${old}" >/dev/null 2>&1 || true
+  done
+else
+  echo "[jeff-build] 命中缓存镜像 ${IMAGE_TAG}，跳过 npm install"
+fi
+
+# 3) 运行构建（仅挂载子目录，复用镜像内 node_modules）
+docker run --rm \
+  -v "${SITE_DIR}/src:/app/src" \
+  -v "${SITE_DIR}/public:/app/public" \
+  -v "${SITE_DIR}/astro.config.mjs:/app/astro.config.mjs" \
+  -v "${SITE_DIR}/package.json:/app/package.json" \
+  -v "${SITE_DIR}/dist:/app/dist" \
+  -v "${CONTENT_DIR}:/content" \
+  -w /app \
+  "${IMAGE_TAG}" \
+  npm run build 2>&1
+
+echo "Build complete: ${SITE_DIR}/dist/"
