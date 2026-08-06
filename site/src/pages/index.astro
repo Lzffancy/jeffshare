@@ -5,6 +5,7 @@ import { getCollection } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Hero from "../components/Hero.astro";
 import Card from "../components/Card.astro";
+import GraffitiWall from "../components/GraffitiWall.vue";
 
 const posts = (await getCollection("blog"))
   .filter((p) => !p.data.draft)
@@ -97,4 +98,7 @@ const badgeCounts = [
       )
     }
   </div>
+
+  <!-- 涂鸦墙 -->
+  <GraffitiWall client:load />
 </BaseLayout>

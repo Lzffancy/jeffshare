@@ -9,10 +9,13 @@ import time
 import logging
 import contextvars
 import os
+import base64
+from datetime import datetime, timedelta
 
 import httpx
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, JSONResponse
+from pydantic import BaseModel
 
 # ── logging ──────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -143,3 +146,69 @@ async def github_callback(code: str = None, error: str = None, error_description
 
     from fastapi.responses import HTMLResponse
     return HTMLResponse(content=html)
+
+
+# ── 涂鸦墙 API ─────────────────────────────────────────────────────────
+GRAFFITI_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "graffiti")
+
+
+class GraffitiPayload(BaseModel):
+    image: str | None = None  # base64 data URL or null (clear)
+
+
+def _graffiti_filepath(date_str: str | None = None) -> str:
+    """返回指定日期的涂鸦文件路径，默认今天。"""
+    if date_str is None:
+        date_str = datetime.now().strftime("%Y-%m-%d")
+    os.makedirs(GRAFFITI_DIR, exist_ok=True)
+    return os.path.join(GRAFFITI_DIR, f"{date_str}.png")
+
+
+def _cleanup_old_files(retain_days: int = 7):
+    """删除超过 retain_days 天的旧涂鸦文件。"""
+    cutoff = datetime.now() - timedelta(days=retain_days)
+    if not os.path.isdir(GRAFFITI_DIR):
+        return
+    for fname in os.listdir(GRAFFITI_DIR):
+        fpath = os.path.join(GRAFFITI_DIR, fname)
+        if not os.path.isfile(fpath):
+            continue
+        mtime = datetime.fromtimestamp(os.path.getmtime(fpath))
+        if mtime < cutoff:
+            os.remove(fpath)
+            logger.info(f"graffiti cleanup: removed {fname}")
+
+
+@app.get("/api/graffiti")
+def graffiti_get():
+    """获取今日涂鸦（base64 PNG），同时清理超过 7 天的旧文件。"""
+    _cleanup_old_files()
+
+    filepath = _graffiti_filepath()
+    if os.path.isfile(filepath):
+        with open(filepath, "rb") as f:
+            data = base64.b64encode(f.read()).decode("utf-8")
+        return {"image": f"data:image/png;base64,{data}"}
+    return {"image": None}
+
+
+@app.post("/api/graffiti")
+def graffiti_post(payload: GraffitiPayload):
+    """保存或清除今日涂鸦。image 为 null 时删除今日文件。"""
+    filepath = _graffiti_filepath()
+
+    if payload.image is None:
+        if os.path.isfile(filepath):
+            os.remove(filepath)
+            logger.info("graffiti: cleared today's drawing")
+        return {"status": "cleared"}
+
+    # 解析 base64 data URL: "data:image/png;base64,xxxxx"
+    raw = payload.image
+    if "," in raw:
+        raw = raw.split(",", 1)[1]
+    img_bytes = base64.b64decode(raw)
+    with open(filepath, "wb") as f:
+        f.write(img_bytes)
+    logger.info(f"graffiti: saved today's drawing ({len(img_bytes)} bytes)")
+    return {"status": "saved"}
