@@ -14,35 +14,86 @@ if (!post) {
   return Astro.redirect("/404");
 }
 
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 ---
 
 <BaseLayout title={`${post.data.title} — Jeff 的工作台`}>
-  <div class="max-w-3xl mx-auto px-5 py-10">
+  <div class="mx-auto px-5 py-10 max-w-6xl">
     <a href="/blog" class="text-sm text-primary hover:text-accent transition-colors no-underline mb-4 inline-block">
       &larr; 返回博客列表
     </a>
 
-    <article>
-      <header class="mb-8">
-        <h1 class="text-3xl font-extrabold text-primary">{post.data.title}</h1>
-        <div class="flex flex-wrap items-center gap-2 mt-3">
-          <span class="text-sm text-base-content/40">
-            {post.data.date.toISOString().slice(0, 10)}
-          </span>
-          {post.data.tags.map((t: string) => (
-            <span class="badge badge-sm bg-[#e8f4fd] text-[#0277bd] border-0">{t}</span>
-          ))}
+    <div class="lg:grid lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-10">
+      <!-- 左侧目录 -->
+      <aside class="hidden lg:block">
+        <nav class="sticky top-20 max-h-[calc(100vh-6rem)] overflow-y-auto pr-2">
+          <div class="text-sm font-bold text-primary mb-3">目录</div>
+          <ul class="space-y-1 text-sm">
+            {toc.map((h) => (
+              <li>
+                <a
+                  href={`#${h.slug}`}
+                  class:list={[
+                    "toc-link block no-underline text-base-content/60 hover:text-primary transition-colors",
+                    h.depth === 3 ? "pl-4" : "pl-2",
+                  ]}
+                >
+                  {h.text}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      </aside>
+
+      <!-- 正文 -->
+      <article class="min-w-0 max-w-3xl">
+        <header class="mb-8">
+          <h1 class="text-3xl font-extrabold text-primary">{post.data.title}</h1>
+          <div class="flex flex-wrap items-center gap-2 mt-3">
+            <span class="text-sm text-base-content/40">
+              {post.data.date.toISOString().slice(0, 10)}
+            </span>
+            {post.data.tags.map((t: string) => (
+              <span class="badge badge-sm bg-[#e8f4fd] text-[#0277bd] border-0">{t}</span>
+            ))}
+          </div>
+        </header>
+
+        <div class="post-content">
+          <Content />
         </div>
-      </header>
 
-      <div class="post-content">
-        <Content />
-      </div>
-    </article>
-
-    <div class="mt-10 pt-6 border-t border-base-300">
-      <a href="/blog" class="btn btn-outline btn-sm">&larr; 返回博客列表</a>
+        <div class="mt-10 pt-6 border-t border-base-300">
+          <a href="/blog" class="btn btn-outline btn-sm">&larr; 返回博客列表</a>
+        </div>
+      </article>
     </div>
   </div>
 </BaseLayout>
+
+<script>
+  // 目录高亮当前章节
+  const links = Array.from(document.querySelectorAll<HTMLAnchorElement>(".toc-link"));
+  const map = new Map<string, HTMLAnchorElement>();
+  links.forEach((l) => {
+    const id = l.getAttribute("href")?.slice(1);
+    if (id) map.set(id, l);
+  });
+  const headings = Array.from(document.querySelectorAll<HTMLElement>(".post-content h2, .post-content h3"));
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          links.forEach((l) => l.classList.remove("text-primary", "font-semibold"));
+          const active = map.get(entry.target.id);
+          if (active) active.classList.add("text-primary", "font-semibold");
+        }
+      });
+    },
+    { rootMargin: "0px 0px -70% 0px", threshold: 0 }
+  );
+  headings.forEach((h) => observer.observe(h));
+</script>

@@ -43,6 +43,15 @@
 .post-content h3 {
   color: var(--color-primary);
   margin-top: 1.5rem;
+  scroll-margin-top: 5rem; /* 锚点跳转避开 sticky 导航 */
+}
+
+/* ---- 左侧目录 ---- */
+.toc-link {
+  border-left: 2px solid transparent;
+}
+.toc-link.text-primary {
+  border-left-color: var(--color-accent);
 }
 .post-content p {
   margin: 0.75rem 0;
