@@ -18,7 +18,8 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
 from pydantic import BaseModel
 
-from app.agent import summarize_conversation
+from app.agent.seed import seed_all
+from app.agent import get as get_agent
 
 # ── logging ──────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -169,18 +170,31 @@ class SaveRequest(BaseModel):
     markdown: str
 
 
+@app.on_event("startup")
+async def startup_event():
+    """应用启动时写入种子数据、初始化 Agent 注册表。"""
+    # 导入 agents 子包触发 @register 装饰器注册
+    import app.agent.agents  # noqa: F401
+    seed_all()
+    logger.info("Agent 注册表已初始化")
+
+
 @app.post("/api/agent/summarize")
 async def agent_summarize(payload: SummarizeRequest):
-    """接收原始对话文本，返回 AI 总结后的结构化 Markdown。"""
+    """接收原始对话文本，返回 AI 总结后的结构化 Markdown。
+
+    通过 AgentRegistry 加载配置驱动的 agent 实例执行。
+    """
     if not payload.conversation or not payload.conversation.strip():
         raise HTTPException(status_code=400, detail="对话内容不能为空")
 
     try:
-        result = summarize_conversation(
-            conversation=payload.conversation.strip(),
-            model=payload.model,
-        )
+        agent = get_agent("conversation-summarizer")
+        result = agent.run(conversation=payload.conversation.strip())
         return {"success": True, "result": result}
+    except ValueError as e:
+        logger.error(f"agent/summarize: 配置错误: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
     except RuntimeError as e:
         logger.error(f"agent/summarize: {e}")
         raise HTTPException(status_code=500, detail=str(e))

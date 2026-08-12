@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 graffiti/
 .codebuddy/
+app/data/agent.db
