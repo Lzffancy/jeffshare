@@ -16,7 +16,28 @@
 │   ├── public/admin/              # Decap CMS 后台 (config.yml + index.html)
 │   └── dist/                      # 构建产物 → Caddy 直接提供
 ├── app/
-│   ├── main.py                    # FastAPI: OAuth中转 + 未来API骨架 (不再渲染页面)
+│   ├── main.py                    # FastAPI: 入口 + 路由挂载
+│   ├── entity/                    # Clean Architecture: 核心模型 + 端口契约
+│   │   ├── agent.py               # AgentDefinition / AgentVersion / AgentStep / ModelParams
+│   │   ├── execution.py           # ExecutionRecord
+│   │   ├── values.py              # StepType / ConfigStatus / WorkflowType / ExecutionStatus
+│   │   └── ports.py               # ILlmClient / IWorkflowEngine / IAgentConfigRepo / IExecutionRepo
+│   ├── logic/                     # Clean Architecture: 用例层
+│   │   ├── orchestrator.py        # AgentOrchestrator / StepExecutor / WorkflowContext
+│   │   ├── summarize.py           # SummarizeUseCase（AI 会话总结）
+│   │   ├── save_markdown.py       # SaveMarkdownUseCase（保存 Markdown）
+│   │   ├── dtos.py                # 用例 DTO
+│   │   └── registry.py            # Agent 注册表
+│   ├── repository/                # Clean Architecture: 适配器层（外部依赖实现）
+│   │   ├── llm/openai_client.py   # OpenAI LLM 适配器
+│   │   ├── persistence/           # SQLite 仓储 + 种子数据
+│   │   └── workflow/langgraph_engine.py  # LangGraph 工作流引擎
+│   ├── service/                   # Clean Architecture: 协议层（FastAPI 路由 + 组合根）
+│   │   ├── routes.py              # Agent API 路由 + DI
+│   │   ├── schemas.py             # Pydantic 请求/响应模型
+│   │   └── graffiti.py            # 涂鸦墙 API
+│   └── middleware/                # 横切关注点
+│       └── oauth.py               # Decap CMS OAuth 中转
 ├── content/
 │   ├── posts/                     # 博客文章 (.md, frontmatter: title/date/tags/draft)
 │   ├── reports/                   # 研究报告 (每个子目录一份报告)

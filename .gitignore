@@ -3,7 +3,7 @@ __pycache__/
 *.pyc
 graffiti/
 .codebuddy/
-app/data/agent.db
-app/data/agent.db-shm
-app/data/agent.db-wal
+data/agent.db
+data/agent.db-shm
+data/agent.db-wal
 source/
