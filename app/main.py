@@ -14,6 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.service.routes import router as agent_router
 from app.service.graffiti import router as graffiti_router
+from app.service.upload import router as upload_router
 from app.middleware.oauth import router as oauth_router
 from app.repository.persistence.seed import seed_all
 
@@ -39,6 +40,7 @@ app.add_middleware(
 # 注册路由
 app.include_router(agent_router)
 app.include_router(graffiti_router)
+app.include_router(upload_router)
 app.include_router(oauth_router)
 
 
