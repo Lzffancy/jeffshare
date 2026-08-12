@@ -54,8 +54,7 @@ async def upload_files(
         raw_files.append((f.filename or "untitled", content))
 
     logger.info(
-        f"Upload: 收到 {len(raw_files)} 个文件，总大小 {total_size} 字节，"
-        f"用户 {session.get('user', {}).get('login', 'unknown')}"
+        f"Upload: 收到 {len(raw_files)} 个文件，总大小 {total_size} 字节"
     )
 
     uc = _get_upload_uc()
