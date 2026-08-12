@@ -7,8 +7,9 @@ from __future__ import annotations
 import logging
 import os
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 
+from app.middleware.auth import require_auth
 from app.logic.dtos import SummarizeInput, SaveMarkdownInput
 from app.logic.summarize import SummarizeUseCase
 from app.logic.save_markdown import SaveMarkdownUseCase
@@ -57,7 +58,7 @@ def _get_save_uc() -> SaveMarkdownUseCase:
 
 
 @router.post("/summarize")
-async def summarize(payload: SummarizeRequest):
+async def summarize(payload: SummarizeRequest, session: dict = Depends(require_auth)):
     """AI 会话总结：粘贴对话 → 返回 Markdown。"""
     if not payload.conversation.strip():
         raise HTTPException(status_code=400, detail="对话内容不能为空")
@@ -85,7 +86,7 @@ async def summarize(payload: SummarizeRequest):
 
 
 @router.post("/save")
-async def save_markdown(payload: SaveRequest):
+async def save_markdown(payload: SaveRequest, session: dict = Depends(require_auth)):
     """保存编辑后的 Markdown 到 content/posts/。"""
     if not payload.slug or not payload.markdown:
         raise HTTPException(status_code=400, detail="slug 和 markdown 不能为空")

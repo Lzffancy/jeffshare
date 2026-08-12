@@ -22,6 +22,13 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci 2>/dev/null || npm install
 
+# 配置 apt 代理（apt 不认 HTTP_PROXY 环境变量，需要写 apt.conf.d）
+RUN if [ -n "${HTTP_PROXY}" ]; then \
+      echo "Acquire::http::Proxy \"${HTTP_PROXY}\";" > /etc/apt/apt.conf.d/99proxy ; \
+      echo "Acquire::https::Proxy \"${HTTPS_PROXY}\";" >> /etc/apt/apt.conf.d/99proxy ; \
+      echo "[apt proxy] ${HTTP_PROXY}" ; \
+    fi
+
 # 安装 Chromium 所需的系统依赖（libatk, libnss 等 .deb 包）
 RUN npx playwright install-deps chromium
 
