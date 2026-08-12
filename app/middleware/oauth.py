@@ -133,29 +133,4 @@ async def admin_verify(request: Request):
     return {"user": session["user"]}
 
 
-@router.post("/admin-auth/_dev/session")
-async def dev_session(request: Request):
-    """仅本地调试：生成一个白名单用户的测试 session。
-    只接受来自 127.0.0.1 或 ::1 的请求。"""
-    client_host = request.client.host if request.client else ""
-    if client_host not in ("127.0.0.1", "::1"):
-        raise HTTPException(status_code=403, detail="dev endpoint only accessible from localhost")
 
-    body = await request.json()
-    login = body.get("login", "jeffszhang")
-    if login not in ALLOWED_GITHUB_USERS:
-        raise HTTPException(status_code=400, detail=f"user {login} not in whitelist")
-
-    sid = uuid.uuid4().hex
-    sessions[sid] = {
-        "user": {"login": login, "id": 0, "avatar_url": "", "name": login},
-        "token": "dev-token",
-        "created_at": time.time(),
-    }
-
-    resp = RedirectResponse("/workbench/")
-    resp.set_cookie(
-        key="jeff_sid", value=sid, httponly=True,
-        secure=True, samesite="lax", max_age=SESSION_EXPIRE_SECONDS,
-    )
-    return resp

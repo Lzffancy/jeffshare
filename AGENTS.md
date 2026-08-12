@@ -176,6 +176,69 @@ sudo systemctl reload caddy    # Caddy 配置变更后
 # 代理端口: 127.0.0.1:7890
 ```
 
+## E2E 测试
+
+### 环境架构
+
+宿主机 CentOS 7 glibc 2.17 太老，Playwright Chromium 无法运行。测试在 Docker 容器内执行，通过 `--network host` 访问宿主机的 Caddy + FastAPI。
+
+```
+e2e/
+├── Dockerfile              # node:20 (Debian) + Chromium + 系统依赖
+├── package.json            # @playwright/test
+├── playwright.config.ts    # 测试配置（baseURL、浏览器、trace）
+├── run.sh                  # 一键构建镜像并运行测试
+└── tests/
+    └── smoke.spec.ts       # 冒烟测试
+```
+
+### 运行测试
+
+```bash
+# 前提：Caddy + FastAPI 必须已在宿主机运行
+cd /data/jeff_share_svr/e2e
+
+# 首次需要构建镜像（下载 Chromium ~177MB，约 2-3 分钟）
+./run.sh
+
+# 指定测试文件
+./run.sh tests/smoke.spec.ts
+
+# 按名称过滤
+./run.sh --grep "博客"
+
+# 更换目标 URL（CI 等场景）
+BASE_URL=https://jeffshare.com ./run.sh
+```
+
+### 镜像说明
+
+- **基础镜像**: `node:20`（Debian），不能用 Alpine（Chromium 需要 glibc）
+- **内置浏览器**: 仅 Chromium（`npx playwright install chromium`）
+- **镜像名**: `jeff-playwright`
+- **网络模式**: `--network host`（容器直接访问宿主机 localhost:443 / :8000）
+- 目标 URL 默认 `https://localhost`（Caddy 本地自签名证书，`ignoreHTTPSErrors: true`）
+
+### 测试内容
+
+冒烟测试覆盖：首页加载、导航栏、博客列表和导航、报告页、分享页、API 可达性。
+
+### 为什么不是 Alpine
+
+现有的 `site/Dockerfile.builder`（Astro 构建）用 `node:20-alpine`，因为 Tailwind CSS 有 `@tailwindcss/oxide-linux-x64-musl` 的 musl 构建。但 Playwright Chromium **只有 glibc 构建**，在 Alpine 上会跑不起来，所以必须用 Debian 系镜像。
+
+## Docker 使用盘点
+
+| 组件 | 运行方式 | 容器化 | 原因 |
+|------|---------|--------|------|
+| **Astro 构建** | Docker `node:20-alpine` | ✅ 必须 | 宿主机 CentOS 7 glibc 2.17，Node 18+ 要求 ≥2.28 |
+| **E2E 测试** | Docker `node:20` | ✅ 必须 | Playwright Chromium 需要新版 glibc |
+| **FastAPI** | 宿主机 venv + systemd | ❌ 不需要 | Python 3.10 在 CentOS 7 上工作正常，容器化收益不大 |
+| **Caddy** | 宿主机 systemd | ❌ 不建议 | 网络层组件，处理证书和端口绑定，容器化反而增加复杂度 |
+| **Clash** | 宿主机 | ❌ 不建议 | 代理需要劫持网络流量，容器化会引入嵌套网络问题 |
+
+**结论**: 不追求全部容器化。当前"**跑不动的进 Docker，能跑的留宿主机**"是最务实的方案。
+
 ## 技术栈
 
 - **Astro 5** + Tailwind CSS v4 + daisyUI v5 — 静态站点生成
@@ -183,7 +246,8 @@ sudo systemctl reload caddy    # Caddy 配置变更后
 - **Decap CMS** — Git-based 网页内容管理后台
 - **FastAPI** + httpx — OAuth 中转 + API 骨架
 - **Caddy** — 反向代理 + 静态文件服务
-- **Docker** (node:20-alpine) — Astro 构建运行环境
+- **Docker** (node:20-alpine + node:20) — Astro 构建 + E2E 测试
+- **Playwright** — 端到端测试（Chromium，Docker 内运行）
 - **systemd** — 进程管理
 - **Git** bare repo + post-receive hook — 自动部署
 - **CentOS 7**, 内核 3.10, Python 3.10
