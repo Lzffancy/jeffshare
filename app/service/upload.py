@@ -28,7 +28,7 @@ def _get_upload_uc() -> UploadProcessingUseCase:
 @router.post("")
 async def upload_files(
     request: Request,
-    files: list[UploadFile] = File(...),
+    files: list[UploadFile] = File(default=[]),
     session: dict = Depends(require_auth),
 ):
     """上传文件到 source/，自动处理并发布到 content/。

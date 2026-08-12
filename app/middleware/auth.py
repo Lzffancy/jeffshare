@@ -8,7 +8,7 @@ import time
 
 from fastapi import Request, HTTPException
 
-from app.middleware.oauth import sessions, SESSION_EXPIRE_SECONDS
+from app.middleware.oauth import sessions, SESSION_EXPIRE_SECONDS, ALLOWED_GITHUB_USERS
 
 
 async def require_auth(request: Request) -> dict:
@@ -30,5 +30,10 @@ async def require_auth(request: Request) -> dict:
     if time.time() - session["created_at"] > SESSION_EXPIRE_SECONDS:
         sessions.pop(sid, None)
         raise HTTPException(status_code=401, detail="会话已过期，请重新登录")
+
+    # 纵深防御：即使 OAuth 回调漏过，路由层也再次校验用户白名单
+    login = session.get("user", {}).get("login", "")
+    if login not in ALLOWED_GITHUB_USERS:
+        raise HTTPException(status_code=403, detail=f"用户 {login} 无权限访问此功能")
 
     return session

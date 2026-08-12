@@ -19,6 +19,10 @@ OAUTH_CLIENT_ID = "b9ebf70e04c8bc275523"
 OAUTH_CLIENT_SECRET = "ac91c75d7ae77c4a6c6e20ba4d5cf2002fcf9f34"
 SESSION_EXPIRE_SECONDS = 3600
 OAUTH_STATE_TTL = 600
+# 只允许这些 GitHub 用户登录（白名单）
+ALLOWED_GITHUB_USERS: set[str] = set(
+    os.getenv("ALLOWED_GITHUB_USERS", "jeffszhang").split(",")
+)
 
 oauth_states: dict[str, dict] = {}  # {state: {created_at, redirect}}
 sessions: dict[str, dict] = {}
@@ -71,6 +75,14 @@ async def github_callback(code: str = "", state: str = ""):
             headers={"Authorization": f"Bearer {access_token}"},
         )
         user_info = user_resp.json()
+
+        # ── 用户白名单校验：只有 ALLOWED_GITHUB_USERS 中的人才能登录 ──
+        login = user_info.get("login", "")
+        if login not in ALLOWED_GITHUB_USERS:
+            raise HTTPException(
+                status_code=403,
+                detail=f"用户 {login} 不在允许列表中",
+            )
 
     sid = uuid.uuid4().hex
     sessions[sid] = {
