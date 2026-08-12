@@ -73,6 +73,7 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted, nextTick } from "vue";
+import { fetchWithTrace } from "../utils/trace";
 
 const API_URL = "/api/graffiti";
 
@@ -176,7 +177,7 @@ function onPointerUp(e) {
 
 // ── API 交互 ──
 async function loadGraffiti() {
-  const response = await fetch(API_URL);
+  const response = await fetchWithTrace(API_URL);
   if (!response.ok) return;
   const data = await response.json();
 
@@ -206,7 +207,7 @@ function saveGraffiti() {
 
   const dataUrl = canvas.toDataURL("image/png");
 
-  fetch(API_URL, {
+  fetchWithTrace(API_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ image: dataUrl }),

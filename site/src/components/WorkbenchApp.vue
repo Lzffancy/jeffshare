@@ -201,6 +201,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
+import { fetchWithTrace } from "../utils/trace";
 
 // ── tab ──
 const tab = ref("summarize"); // summarize | upload
@@ -213,7 +214,7 @@ const userLogin = ref("");
 onMounted(async () => {
   tab.value = window.location.hash === "#upload" ? "upload" : "summarize";
   try {
-    const resp = await fetch("/api/auth/check", { credentials: "include" });
+    const resp = await fetchWithTrace("/api/auth/check", { credentials: "include" });
     if (resp.ok) {
       const data = await resp.json();
       authed.value = true;
@@ -263,7 +264,7 @@ async function doUpload() {
     for (const f of selectedFiles.value) {
       form.append("files", f);
     }
-    const resp = await fetch("/api/upload", {
+    const resp = await fetchWithTrace("/api/upload", {
       method: "POST",
       body: form,
       credentials: "include",
@@ -339,7 +340,7 @@ async function doSummarize() {
   phase.value = "loading";
   errorMsg.value = "";
   try {
-    const resp = await fetch("/api/agent/summarize", {
+    const resp = await fetchWithTrace("/api/agent/summarize", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ conversation: conversation.value }),
@@ -362,7 +363,7 @@ async function doSummarize() {
 async function doSave() {
   phase.value = "saving";
   try {
-    const resp = await fetch("/api/agent/save", {
+    const resp = await fetchWithTrace("/api/agent/save", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ slug: result.value.slug, markdown: markdown.value }),
