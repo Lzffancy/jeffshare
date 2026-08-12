@@ -2,33 +2,79 @@
 
 简单密码登录。ADMIN_PASSWORD 环境变量控制密码。
 登录成功后设置 jeff_token cookie，后续请求通过 require_auth 校验。
+
+Session 存储在 SQLite（data/agent.db 的 sessions 表），多 worker 进程共享、
+重启不丢失，避免「登录已过期」误判。
 """
 from __future__ import annotations
 
 import hashlib
+import logging
 import os
 import time
 
 from fastapi import APIRouter, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 
+from app.repository.persistence.sqlite import get_conn
+from app.middleware.tracing import get_trace_id
+
+logger = logging.getLogger("jeff-api")
+
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "changeme")
 SESSION_MAX_AGE = 86400 * 7  # 7 天
 
 router = APIRouter()
 
-# 内存: token → expiry_timestamp
-_tokens: dict[str, float] = {}
+# 内存缓存: token → expiry_timestamp（只读缓存，真实数据在 SQLite）
+_cache: dict[str, float] = {}
+
+
+def _ensure_sessions_table() -> None:
+    conn = get_conn()
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS sessions (
+            token    TEXT PRIMARY KEY,
+            login    TEXT NOT NULL,
+            expires  REAL NOT NULL
+        )
+        """
+    )
+    conn.commit()
+
+
+def _load_expiry(token: str) -> float | None:
+    """从 SQLite 读取 token 过期时间（带内存缓存加速）。"""
+    cached = _cache.get(token)
+    if cached is not None:
+        return cached
+    conn = get_conn()
+    row = conn.execute(
+        "SELECT expires FROM sessions WHERE token = ?", (token,)
+    ).fetchone()
+    if row is None:
+        return None
+    expiry = float(row["expires"])
+    _cache[token] = expiry
+    return expiry
 
 
 async def require_auth(request: Request) -> dict:
-    """FastAPI 依赖：校验 jeff_token cookie.。"""
+    """FastAPI 依赖：校验 jeff_token cookie。"""
     token = request.cookies.get("jeff_token", "")
     if not token:
+        logger.warning(f"require_auth 拒绝：缺少 token (path={request.url.path})")
         raise HTTPException(status_code=401, detail="请先登录 /login")
-    expiry = _tokens.get(token)
+    expiry = _load_expiry(token)
     if expiry is None or time.time() > expiry:
-        _tokens.pop(token, None)
+        if expiry is not None:
+            # 已过期：从库和缓存中清理
+            conn = get_conn()
+            conn.execute("DELETE FROM sessions WHERE token = ?", (token,))
+            conn.commit()
+        _cache.pop(token, None)
+        logger.warning(f"require_auth 拒绝：token 无效或已过期 (path={request.url.path})")
         raise HTTPException(status_code=401, detail="登录已过期，请重新登录")
     return {"user": {"login": "admin"}}
 
@@ -49,12 +95,20 @@ async def api_login(request: Request):
 
     password = body.get("password", "")
     if password != ADMIN_PASSWORD:
+        logger.warning("登录失败：密码错误")
         raise HTTPException(status_code=401, detail="密码错误")
 
     token = hashlib.sha256(
         f"{ADMIN_PASSWORD}:{time.time()}:{os.urandom(16).hex()}".encode()
     ).hexdigest()
-    _tokens[token] = time.time() + SESSION_MAX_AGE
+    _ensure_sessions_table()
+    conn = get_conn()
+    conn.execute(
+        "INSERT INTO sessions (token, login, expires) VALUES (?, ?, ?)",
+        (token, "admin", time.time() + SESSION_MAX_AGE),
+    )
+    conn.commit()
+    _cache[token] = time.time() + SESSION_MAX_AGE
 
     response = JSONResponse({"ok": True})
     response.set_cookie(

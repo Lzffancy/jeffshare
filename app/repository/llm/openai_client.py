@@ -13,6 +13,7 @@ from typing import Any
 from openai import OpenAI
 
 from app.entity.ports import ILlmClient
+from app.middleware.tracing import get_trace_id
 
 logger = logging.getLogger("jeff-api")
 
@@ -57,6 +58,7 @@ class OpenAIClient(ILlmClient):
                 resp = self._client.chat.completions.create(
                     model=model,
                     messages=[{"role": "user", "content": prompt}],
+                    extra_headers={"X-Trace-Id": get_trace_id()},
                     **call_params,
                 )
                 elapsed_ms = int((time.time() - ts) * 1000)

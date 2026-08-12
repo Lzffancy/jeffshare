@@ -16,10 +16,11 @@ from app.service.routes import router as agent_router
 from app.service.graffiti import router as graffiti_router
 from app.service.upload import router as upload_router
 from app.middleware.auth import router as auth_router
+from app.middleware.tracing import TracingMiddleware, setup_tracing_logging
 from app.repository.persistence.seed import seed_all
 
 # ── 日志 ───────────────────────────────────────────────────────────
-logging.basicConfig(level=logging.INFO)
+setup_tracing_logging(level=logging.INFO)
 logger = logging.getLogger("jeff-api")
 
 # ── FastAPI 应用 ───────────────────────────────────────────────────
@@ -29,6 +30,8 @@ app = FastAPI(
     docs_url=None,
     redoc_url=None,
 )
+
+app.add_middleware(TracingMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
