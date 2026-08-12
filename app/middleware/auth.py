@@ -17,7 +17,6 @@ from fastapi import APIRouter, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 
 from app.repository.persistence.sqlite import get_conn
-from app.middleware.tracing import get_trace_id
 
 logger = logging.getLogger("jeff-api")
 
@@ -74,12 +73,24 @@ def _load_expiry(token: str) -> float | None:
 
 
 def _client_ip(request: Request) -> str:
-    """提取客户端真实 IP（Caddy 反代后从 X-Forwarded-For 取）。"""
-    xff = request.headers.get("x-forwarded-for", "")
-    if xff:
-        # 取最左侧第一个 IP（真实客户端）
-        return xff.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
+    """提取客户端真实 IP。
+
+    数据流：客户端 → Caddy(反代) → uvicorn，因此 uvicorn 看到的
+    request.client.host 永远是 Caddy 的地址（127.0.0.1）。
+
+    Caddy 已用 `header_up X-Forwarded-For {remote_host}` 用真实 TCP 对端
+    IP 覆盖该头，所以只有当请求确实来自本机 Caddy（127.0.0.1）时才信任
+    X-Forwarded-For，防止绕过 Caddy 直连后端伪造 XFF。
+    """
+    direct_host = request.client.host if request.client else ""
+    # 仅信任来自本机回环（Caddy）的请求所携带的 XFF
+    if direct_host in ("127.0.0.1", "::1", "localhost"):
+        xff = request.headers.get("x-forwarded-for", "")
+        if xff:
+            return xff.split(",")[0].strip()
+        return direct_host
+    # 非代理来源：直接使用 TCP 对端 IP（无法伪造）
+    return direct_host or "unknown"
 
 
 def _is_locked(ip: str) -> bool:
