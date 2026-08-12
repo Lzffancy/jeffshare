@@ -31,6 +31,9 @@ const posts = (await getCollection("blog"))
                 <span class="text-sm text-base-content/40">
                   {post.data.date.toISOString().slice(0, 10)}
                 </span>
+                {post.data.source === "ai" && (
+                  <span class="badge badge-xs bg-[#fef3e2] text-[#e87722] border-0">🤖 AI</span>
+                )}
                 {post.data.tags.map((t) => (
                   <span class="badge badge-xs bg-[#e8f4fd] text-[#0277bd] border-0">{t}</span>
                 ))}

@@ -1,6 +1,6 @@
 """
 Jeff 的工作台 — FastAPI 后端
-职责：Decap CMS OAuth 中转 + 未来业务 API 骨架
+职责：Decap CMS OAuth 中转 + AI Agent API + 未来业务 API 骨架
 页面渲染已迁移至 Astro 静态站点
 """
 import json
@@ -10,12 +10,15 @@ import logging
 import contextvars
 import os
 import base64
+import re
 from datetime import datetime, timedelta
 
 import httpx
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
 from pydantic import BaseModel
+
+from app.agent import summarize_conversation
 
 # ── logging ──────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -146,6 +149,68 @@ async def github_callback(code: str = None, error: str = None, error_description
 
     from fastapi.responses import HTMLResponse
     return HTMLResponse(content=html)
+
+
+# ── AI Agent API ───────────────────────────────────────────────────────
+CONTENT_POSTS_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "content", "posts"
+)
+
+_SLUG_RE = re.compile(r"[^a-z0-9\-]")
+
+
+class SummarizeRequest(BaseModel):
+    conversation: str
+    model: str = "gpt-4o-mini"
+
+
+class SaveRequest(BaseModel):
+    slug: str
+    markdown: str
+
+
+@app.post("/api/agent/summarize")
+async def agent_summarize(payload: SummarizeRequest):
+    """接收原始对话文本，返回 AI 总结后的结构化 Markdown。"""
+    if not payload.conversation or not payload.conversation.strip():
+        raise HTTPException(status_code=400, detail="对话内容不能为空")
+
+    try:
+        result = summarize_conversation(
+            conversation=payload.conversation.strip(),
+            model=payload.model,
+        )
+        return {"success": True, "result": result}
+    except RuntimeError as e:
+        logger.error(f"agent/summarize: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        logger.error(f"agent/summarize: unexpected error: {e}")
+        raise HTTPException(status_code=500, detail="总结失败，请稍后重试")
+
+
+@app.post("/api/agent/save")
+async def agent_save(payload: SaveRequest):
+    """将编辑后的 Markdown 保存到 content/posts/。"""
+    if not payload.slug or not payload.markdown:
+        raise HTTPException(status_code=400, detail="slug 和 markdown 不能为空")
+
+    # 安全校验：slug 只允许小写字母、数字和横线
+    safe_slug = _SLUG_RE.sub("", payload.slug.lower())
+    if not safe_slug or len(safe_slug) > 100:
+        raise HTTPException(status_code=400, detail="slug 格式无效")
+
+    os.makedirs(CONTENT_POSTS_DIR, exist_ok=True)
+    filepath = os.path.join(CONTENT_POSTS_DIR, f"{safe_slug}.md")
+    with open(filepath, "w", encoding="utf-8") as f:
+        f.write(payload.markdown)
+
+    logger.info(f"agent/save: 保存成功 — content/posts/{safe_slug}.md")
+    return {
+        "success": True,
+        "path": f"content/posts/{safe_slug}.md",
+        "message": "已保存，git commit + push 后即可上线",
+    }
 
 
 # ── 涂鸦墙 API ─────────────────────────────────────────────────────────

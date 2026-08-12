@@ -55,6 +55,9 @@ const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
             <span class="text-sm text-base-content/40">
               {post.data.date.toISOString().slice(0, 10)}
             </span>
+            {post.data.source === "ai" && (
+              <span class="badge badge-sm bg-[#fef3e2] text-[#e87722] border-0">🤖 AI 总结</span>
+            )}
             {post.data.tags.map((t: string) => (
               <span class="badge badge-sm bg-[#e8f4fd] text-[#0277bd] border-0">{t}</span>
             ))}

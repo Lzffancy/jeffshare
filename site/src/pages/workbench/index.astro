@@ -1,0 +1,15 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import WorkbenchApp from "../../components/WorkbenchApp.vue";
+---
+
+<BaseLayout title="工作台 — Jeff 的工作台" description="AI 会话沉淀工作台">
+  <div class="max-w-5xl mx-auto px-5 py-10">
+    <div class="mb-6">
+      <h1 class="text-3xl font-extrabold text-primary">工作台</h1>
+      <p class="text-base-content/60 mt-1">粘贴 AI 对话内容，一键生成结构化博客草稿</p>
+    </div>
+
+    <WorkbenchApp client:load />
+  </div>
+</BaseLayout>
