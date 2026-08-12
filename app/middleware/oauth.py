@@ -20,7 +20,7 @@ OAUTH_CLIENT_SECRET = "ac91c75d7ae77c4a6c6e20ba4d5cf2002fcf9f34"
 SESSION_EXPIRE_SECONDS = 3600
 OAUTH_STATE_TTL = 600
 
-oauth_states: dict[str, float] = {}
+oauth_states: dict[str, dict] = {}  # {state: {created_at, redirect}}
 sessions: dict[str, dict] = {}
 sid_ctx: contextvars.ContextVar = contextvars.ContextVar("sid", default="")
 
@@ -28,9 +28,13 @@ sid_ctx: contextvars.ContextVar = contextvars.ContextVar("sid", default="")
 @router.get("/admin-auth")
 async def admin_auth(request: Request):
     provider = request.query_params.get("provider", "github")
+    redirect_to = request.query_params.get("redirect", "/admin/")
     if provider == "github":
         state = uuid.uuid4().hex
-        oauth_states[state] = time.time()
+        oauth_states[state] = {
+            "created_at": time.time(),
+            "redirect": redirect_to,
+        }
         return RedirectResponse(
             f"https://github.com/login/oauth/authorize"
             f"?client_id={OAUTH_CLIENT_ID}&scope=repo,user&state={state}"
@@ -43,7 +47,8 @@ async def github_callback(code: str = "", state: str = ""):
     now = time.time()
     if state not in oauth_states:
         raise HTTPException(status_code=400, detail="invalid state")
-    if now - oauth_states.pop(state) > OAUTH_STATE_TTL:
+    state_data = oauth_states.pop(state)
+    if now - state_data["created_at"] > OAUTH_STATE_TTL:
         raise HTTPException(status_code=400, detail="state expired")
 
     async with httpx.AsyncClient() as client:
@@ -75,7 +80,8 @@ async def github_callback(code: str = "", state: str = ""):
     }
 
     site_url = os.getenv("SITE_URL", "https://jeffshare.com")
-    response = RedirectResponse(f"{site_url}/admin/")
+    redirect_to = state_data.get("redirect", "/admin/")
+    response = RedirectResponse(f"{site_url}{redirect_to}")
     response.set_cookie(
         key="jeff_sid", value=sid, httponly=True,
         secure=True, samesite="lax", max_age=SESSION_EXPIRE_SECONDS,
