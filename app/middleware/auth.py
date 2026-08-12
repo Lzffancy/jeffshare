@@ -24,6 +24,10 @@ logger = logging.getLogger("jeff-api")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "changeme")
 SESSION_MAX_AGE = 86400 * 7  # 7 天
 
+# 防暴力破解：同一 IP 连续失败次数阈值与锁定时长
+MAX_FAILED_ATTEMPTS = 3
+LOCKOUT_SECONDS = 3600  # 1 小时
+
 router = APIRouter()
 
 # 内存缓存: token → expiry_timestamp（只读缓存，真实数据在 SQLite）
@@ -38,6 +42,15 @@ def _ensure_sessions_table() -> None:
             token    TEXT PRIMARY KEY,
             login    TEXT NOT NULL,
             expires  REAL NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS login_attempts (
+            ip         TEXT PRIMARY KEY,
+            fail_count INTEGER NOT NULL,
+            locked_until REAL NOT NULL
         )
         """
     )
@@ -58,6 +71,70 @@ def _load_expiry(token: str) -> float | None:
     expiry = float(row["expires"])
     _cache[token] = expiry
     return expiry
+
+
+def _client_ip(request: Request) -> str:
+    """提取客户端真实 IP（Caddy 反代后从 X-Forwarded-For 取）。"""
+    xff = request.headers.get("x-forwarded-for", "")
+    if xff:
+        # 取最左侧第一个 IP（真实客户端）
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _is_locked(ip: str) -> bool:
+    """检查 IP 是否处于锁定期。"""
+    _ensure_sessions_table()
+    conn = get_conn()
+    row = conn.execute(
+        "SELECT locked_until FROM login_attempts WHERE ip = ?", (ip,)
+    ).fetchone()
+    if row is None:
+        return False
+    return time.time() < float(row["locked_until"])
+
+
+def _record_failure(ip: str) -> tuple[bool, int]:
+    """记录一次失败。返回 (是否触发锁定, 剩余可尝试次数)。"""
+    _ensure_sessions_table()
+    conn = get_conn()
+    now = time.time()
+    row = conn.execute(
+        "SELECT fail_count, locked_until FROM login_attempts WHERE ip = ?", (ip,)
+    ).fetchone()
+
+    if row is None:
+        fail_count = 1
+        conn.execute(
+            "INSERT INTO login_attempts (ip, fail_count, locked_until) VALUES (?, ?, ?)",
+            (ip, fail_count, 0.0),
+        )
+    else:
+        fail_count = int(row["fail_count"]) + 1
+        conn.execute(
+            "UPDATE login_attempts SET fail_count = ? WHERE ip = ?",
+            (fail_count, ip),
+        )
+
+    if fail_count >= MAX_FAILED_ATTEMPTS:
+        # 触发锁定
+        conn.execute(
+            "UPDATE login_attempts SET locked_until = ? WHERE ip = ?",
+            (now + LOCKOUT_SECONDS, ip),
+        )
+        conn.commit()
+        return True, 0
+
+    conn.commit()
+    return False, MAX_FAILED_ATTEMPTS - fail_count
+
+
+def _clear_failures(ip: str) -> None:
+    """登录成功后清除该 IP 的失败记录。"""
+    _ensure_sessions_table()
+    conn = get_conn()
+    conn.execute("DELETE FROM login_attempts WHERE ip = ?", (ip,))
+    conn.commit()
 
 
 async def require_auth(request: Request) -> dict:
@@ -93,10 +170,34 @@ async def api_login(request: Request):
     except Exception:
         raise HTTPException(status_code=400, detail="请求格式错误")
 
+    ip = _client_ip(request)
+
+    # 检查是否处于锁定期
+    if _is_locked(ip):
+        logger.warning(f"登录拒绝：IP {ip} 已锁定")
+        raise HTTPException(
+            status_code=429,
+            detail="尝试次数过多，请 1 小时后再试",
+        )
+
     password = body.get("password", "")
     if password != ADMIN_PASSWORD:
-        logger.warning("登录失败：密码错误")
-        raise HTTPException(status_code=401, detail="密码错误")
+        locked, remaining = _record_failure(ip)
+        logger.warning(
+            f"登录失败：密码错误 (ip={ip}, remaining={remaining}, locked={locked})"
+        )
+        if locked:
+            raise HTTPException(
+                status_code=429,
+                detail="尝试次数过多，已锁定 1 小时",
+            )
+        raise HTTPException(
+            status_code=401,
+            detail=f"密码错误，还可尝试 {remaining} 次",
+        )
+
+    # 密码正确：清除失败记录
+    _clear_failures(ip)
 
     token = hashlib.sha256(
         f"{ADMIN_PASSWORD}:{time.time()}:{os.urandom(16).hex()}".encode()
