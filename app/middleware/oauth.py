@@ -133,7 +133,7 @@ async def admin_verify(request: Request):
     return {"user": session["user"]}
 
 
-@router.post("/_dev/session")
+@router.post("/admin-auth/_dev/session")
 async def dev_session(request: Request):
     """仅本地调试：生成一个白名单用户的测试 session。
     只接受来自 127.0.0.1 或 ::1 的请求。"""
