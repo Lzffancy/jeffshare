@@ -9,7 +9,7 @@ import hashlib
 import os
 import time
 
-from fastapi import APIRouter, Request, HTTPException
+from fastapi import APIRouter, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse
 
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "changeme")
@@ -31,6 +31,12 @@ async def require_auth(request: Request) -> dict:
         _tokens.pop(token, None)
         raise HTTPException(status_code=401, detail="登录已过期，请重新登录")
     return {"user": {"login": "admin"}}
+
+
+@router.get("/api/auth/check")
+async def auth_check(session: dict = Depends(require_auth)):
+    """校验登录态：返回当前用户信息（供前端判断是否已登录）。"""
+    return {"ok": True, "user": session["user"]}
 
 
 @router.post("/api/login")
