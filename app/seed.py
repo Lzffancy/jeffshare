@@ -1,30 +1,20 @@
-"""种子数据 — 首次启动时写入 Agent 默认配置
+"""种子数据 — 应用启动时写入默认 Agent 配置
 
-运行时机：FastAPI app 启动事件中调用 seed_all()
-幂等：已存在同名 Agent 定义则跳过
+幂等：已存在同名 Agent 定义则跳过。
 """
 from __future__ import annotations
 
 import json
 import logging
 
-from .db import get_conn
-from .models import (
-    AgentDefinition,
-    AgentVersionConfig,
-    AgentStepConfig,
-    StepType,
-    WorkflowType,
-    ConfigStatus,
-)
+from app.infrastructure.persistence.sqlite import get_conn
+from app.domain.agent.entities import AgentStep, ModelParams
+from app.domain.agent.value_objects import StepType, WorkflowType
 
 logger = logging.getLogger("jeff-api")
 
-# ── 会话总结 Agent 默认配置 ──────────────────────────────────────
-
-
 CONVERSATION_SUMMARIZER_STEPS = [
-    AgentStepConfig(
+    AgentStep(
         order=1,
         name="内容分类",
         type=StepType.LLM_CALL,
@@ -46,7 +36,7 @@ CONVERSATION_SUMMARIZER_STEPS = [
         output_key="classify_result",
         output_schema={"category": "string", "title_hint": "string"},
     ),
-    AgentStepConfig(
+    AgentStep(
         order=2,
         name="提取结论",
         type=StepType.LLM_CALL,
@@ -68,9 +58,8 @@ CONVERSATION_SUMMARIZER_STEPS = [
         ),
         prompt_params=["conversation", "classify_result"],
         output_key="extract_result",
-        model_params_override={"temperature": 0.2},
     ),
-    AgentStepConfig(
+    AgentStep(
         order=3,
         name="组装 Markdown",
         type=StepType.TRANSFORM,
@@ -81,6 +70,26 @@ CONVERSATION_SUMMARIZER_STEPS = [
 ]
 
 
+def _step_to_dict(step: AgentStep) -> dict:
+    d: dict = {
+        "order": step.order,
+        "name": step.name,
+        "type": step.type.value,
+        "prompt_template": step.prompt_template,
+        "prompt_params": step.prompt_params,
+        "output_key": step.output_key,
+    }
+    if step.model_override:
+        d["model_override"] = step.model_override
+    if step.model_params_override:
+        d["model_params_override"] = step.model_params_override
+    if step.transform_func:
+        d["transform_func"] = step.transform_func
+    if step.output_schema:
+        d["output_schema"] = step.output_schema
+    return d
+
+
 def ensure_agent(
     name: str,
     display_name: str,
@@ -88,16 +97,13 @@ def ensure_agent(
     workflow_type: str,
     agent_class: str,
     model: str,
-    model_params: dict,
-    steps: list[AgentStepConfig],
+    model_params: ModelParams,
+    steps: list[AgentStep],
     changelog: str = "初始版本",
 ) -> None:
-    """幂等写入：Agent 定义 + active v1 版本。"""
     conn = get_conn()
 
-    # 检查 Agent 定义是否存在
     row = conn.execute("SELECT id FROM agent_definitions WHERE name = ?", (name,)).fetchone()
-
     if row is None:
         conn.execute(
             """INSERT INTO agent_definitions (name, display_name, description, workflow_type, agent_class)
@@ -111,16 +117,19 @@ def ensure_agent(
     else:
         agent_id = row["id"]
 
-    # 检查是否已有版本
     existing = conn.execute(
         "SELECT COUNT(*) as cnt FROM agent_versions WHERE agent_id = ?", (agent_id,)
     ).fetchone()
     if existing and existing["cnt"] > 0:
-        logger.info(f"seed: Agent '{name}' 已有版本，跳过种子数据")
+        logger.info(f"seed: Agent '{name}' 已有版本，跳过")
         return
 
-    steps_json = json.dumps([s.model_dump(exclude_none=True) for s in steps], ensure_ascii=False)
-    params_json = json.dumps(model_params, ensure_ascii=False)
+    steps_json = json.dumps([_step_to_dict(s) for s in steps], ensure_ascii=False)
+    params_json = json.dumps({
+        "temperature": model_params.temperature,
+        "max_tokens": model_params.max_tokens,
+        "top_p": model_params.top_p,
+    }, ensure_ascii=False)
 
     conn.execute(
         """INSERT INTO agent_versions (agent_id, version, status, model, model_params, steps, changelog)
@@ -128,11 +137,10 @@ def ensure_agent(
         (agent_id, model, params_json, steps_json, changelog),
     )
     conn.commit()
-    logger.info(f"seed: 创建 Agent '{name}' v1 (active)")
+    logger.info(f"seed: 创建 '{name}' v1 (active)")
 
 
 def seed_all():
-    """写入所有 Agent 的种子数据。"""
     steps = CONVERSATION_SUMMARIZER_STEPS
     ensure_agent(
         name="conversation-summarizer",
@@ -141,7 +149,7 @@ def seed_all():
         workflow_type=WorkflowType.LINEAR_CHAIN.value,
         agent_class="SummarizeAgent",
         model="gpt-4o-mini",
-        model_params={"temperature": 0.3, "max_tokens": 2048, "top_p": 1.0},
+        model_params=ModelParams(temperature=0.3, max_tokens=2048, top_p=1.0),
         steps=steps,
         changelog="初始版本：三步串行（内容分类 → 提取结论 → 组装 Markdown），LangGraph 驱动",
     )

@@ -1,14 +1,14 @@
-"""SQLite 连接管理 + DDL 建表
-
-自动初始化数据库文件到 app/data/agent.db
-"""
+"""Infrastructure persistence — SQLite 连接 + DDL"""
 from __future__ import annotations
 
 import os
 import sqlite3
 import threading
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "agent.db")
+DB_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+    "data", "agent.db",
+)
 
 _local = threading.local()
 
@@ -53,7 +53,6 @@ CREATE TABLE IF NOT EXISTS agent_executions (
 
 
 def get_conn() -> sqlite3.Connection:
-    """获取当前线程的 SQLite 连接（自动建表）。"""
     if not hasattr(_local, "conn") or _local.conn is None:
         os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
         conn = sqlite3.connect(DB_PATH)
@@ -67,7 +66,6 @@ def get_conn() -> sqlite3.Connection:
 
 
 def close_conn():
-    """关闭当前线程的数据库连接。"""
     if hasattr(_local, "conn") and _local.conn is not None:
         _local.conn.close()
         _local.conn = None
