@@ -59,6 +59,11 @@
 ├── app/                               # 后端（FastAPI）
 │   └── main.py                        #   OAuth 中转 + API 骨架
 │
+├── dev_doc/                           # ★ 项目开发文档
+│   ├── README.md                       #   开发文档目录索引
+│   └── plans/                          #   开发 spec（先规划再开发）
+│       └── phase1-ai-summarize-pipeline.md
+│
 ├── venv/                              # Python 虚拟环境
 ├── requirements.txt                   # Python 依赖
 ├── AGENTS.md                          # AI Agent 操作手册

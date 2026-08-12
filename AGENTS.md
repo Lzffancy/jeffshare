@@ -21,6 +21,9 @@
 │   ├── posts/                     # 博客文章 (.md, frontmatter: title/date/tags/draft)
 │   ├── reports/                   # 研究报告 (每个子目录一份报告)
 │   └── share/                     # 分享工作台 (静态HTML)
+├── dev_doc/                       # 项目开发文档 & 规划
+│   ├── README.md                   #   开发文档目录索引
+│   └── plans/                      #   开发 spec（先规划再开发）
 ├── venv/                          # Python 虚拟环境
 └── requirements.txt               # FastAPI + httpx (不再需要 Jinja2/markdown-it-py)
 ```
