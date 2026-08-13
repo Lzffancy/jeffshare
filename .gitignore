@@ -7,3 +7,11 @@ data/agent.db
 data/agent.db-shm
 data/agent.db-wal
 source/
+# e2e 测试源码(Dockerfile/run.sh/tests/*)保留版本化，仅忽略测试产物
+e2e/playwright-report/
+e2e/test-results/
+e2e/node_modules/
+e2e/.last-run.json
+e2e/.cache/
+# content/ 按决策脱管：保留磁盘文件，不推送到公开仓库
+content/
