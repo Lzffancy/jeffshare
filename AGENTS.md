@@ -8,12 +8,12 @@
 │   ├── astro.config.mjs           # Astro 5 配置 (Vue + Tailwind)
 │   ├── package.json               # 依赖: astro5, tailwindcss4, daisyui5, vue
 │   ├── src/
-│   │   ├── content.config.ts      # Content Collections schema (blog/reports/share)
+│   │   ├── content.config.ts      # Content Collections schema (blog；reports/share 由 fs 扫描)
 │   │   ├── layouts/BaseLayout.astro
 │   │   ├── components/            # Card, Hero, SiteNav
 │   │   ├── pages/                 # index, blog/[slug], reports, share/[...path]
 │   │   └── styles/global.css      # daisyUI 主题 (藏蓝#003087 + 橙色#e87722)
-│   ├── public/admin/              # Decap CMS 后台 (config.yml + index.html)
+│   ├── public/images/            # 文章配图(legacy 绝对路径 /images/*)；已 gitignore 不进 git
 │   └── dist/                      # 构建产物 → Caddy 直接提供
 ├── app/
 │   ├── main.py                    # FastAPI: 入口 + 路由挂载
@@ -37,9 +37,9 @@
 │   │   ├── schemas.py             # Pydantic 请求/响应模型
 │   │   └── graffiti.py            # 涂鸦墙 API
 │   └── middleware/                # 横切关注点
-│       └── oauth.py               # Decap CMS OAuth 中转
-├── content/
-│   ├── posts/                     # 博客文章 (.md, frontmatter: title/date/tags/draft)
+│       └── auth.py                # 密码登录鉴权 (require_auth)，供未来网页后台使用
+├── content/                       # ⚠️ 整目录 gitignore，不进 git（内容/图片只留磁盘）
+│   ├── posts/                     # 博客文章 (.md)。图片随文管理: xxxx.md 配 xxxx_pic/ 目录
 │   ├── reports/                   # 研究报告 (每个子目录一份报告)
 │   └── share/                     # 分享工作台 (静态HTML)
 ├── dev_doc/                       # 项目开发文档 & 规划
@@ -109,11 +109,18 @@
 
 ## 如何发布内容
 
-### 方式一：网页后台 (Decap CMS)
-访问 `https://jeffshare.com/admin/` → GitHub OAuth 登录 → 表单编辑 → 保存即自动 git commit + push
+> **重要约定**：`content/`（文章/报告/分享）与 `site/public/images/` **都不进 git**，只留服务器磁盘。
+> 因此「改内容」不会触发 `git push`，也不会自动部署；发布内容需手动跑一次构建（见下「触发策略」）。
 
-### 方式二：Git 手写发布
-在 `content/posts/` 下新建 `.md` 文件，frontmatter 格式:
+### 图片随文管理约定 (co-located)
+每篇文章是一个**自包含文件夹**，下载整个目录即得完整、可携带的笔记：
+- `content/posts/<slug>.md` —— 文章正文
+- `content/posts/<slug>_pic/` —— 该文所有配图
+- md 中用相对路径引用：`![说明](./<slug>_pic/图.png)`（Astro 构建时自动打包进 `_astro/`）
+- 旧文章仍用 `/images/<图>`（绝对路径，指向 `site/public/images/`；已 gitignore，磁盘保留）
+
+### 方式一：直接改磁盘文件（推荐，零依赖）
+1. 在 `content/posts/` 下新建 `<slug>.md`，frontmatter 格式:
 ```yaml
 ---
 title: 文章标题
@@ -122,9 +129,16 @@ tags:
   - 标签1
   - 标签2
 draft: false
+source: manual   # 或 ai
 ---
-正文 (Markdown)
+正文 (Markdown，图片用 ./<slug>_pic/ 相对路径)
 ```
+2. 配图放进 `content/posts/<slug>_pic/`。
+3. 运行 `bash site/scripts/jeff-build` 手动重建（**不挂文件监听器**，避免误改文件误触发重建）。
+
+### 方式二：网页后台（所见即所得编辑器）—— 待开发
+规划中的网页编辑器（live-preview Markdown 编辑 + 图片上传到 `<slug>_pic/` + 点发布触发构建）
+**本期未做**，后续阶段再补。届时内容仍写到磁盘 `content/`，不进 git。
 
 ### 研究报告
 在 `content/reports/` 下新建目录，放入文件。通过 `/reports-files/<目录名>/` 访问。
@@ -132,13 +146,25 @@ draft: false
 ### 分享工作台
 在 `content/share/` 下放入 `.html` 文件，通过 `/share/<文件名>` 访问（自动注入站点导航条）。
 
+### 触发策略（何时重建静态站）
+| 时机 | 触发方式 | 是否误触 |
+|------|----------|----------|
+| 代码改动 | `git push` → post-receive hook → `jeff-build` | 否（push 是主动的） |
+| 本地新增/改内容 | 手动跑 `bash site/scripts/jeff-build` | 否（不监听磁盘） |
+| 网页新增内容（待开发） | 点"发布" → API 调 `jeff-build` | 否（只有点击才触发） |
+
 ## 部署方式
 
-**`git add && git commit && git push origin main` 即自动部署。**
+**代码变更**：`git add && git commit && git push origin main` 即自动部署（post-receive hook 触发）。
+**内容变更**：不进 git，直接在磁盘改 `content/` 后运行 `bash site/scripts/jeff-build` 手动重建。
 
 - 本地 repo: `/data/jeff_share_svr`
 - Bare repo: `/data/git/blog.git`
-- Post-receive hook: 自动 checkout → pip install → `jeff-build`(Docker Node20 Astro构建) → systemctl restart jeff_share_svr → caddy reload
+- Post-receive hook 流程：
+  - 备份 `content/` 与 `site/public/images/`（防 `reset --hard` 误删，因二者已脱管）
+  - `git reset --hard main` → 恢复脱管目录 → `pip install` → `jeff-build`(Docker Node20 Astro构建)
+  - 仅代码变更时 `kill -HUP` 滚动重启 uvicorn；内容变更只重建静态站
+  - `caddy reload`
 
 ## 服务管理
 
@@ -146,7 +172,7 @@ draft: false
 |------|------|-------------|------|
 | Astro 构建产物 | - | - | `/data/jeff_share_svr/site/dist/`，由 Caddy 直接提供 |
 | FastAPI (uvicorn) | 127.0.0.1:8000 | `jeff_share_svr` | API + OAuth 中转 |
-| Caddy | :80/:443 | `caddy` | 静态文件服务 + `/api/*`和`/admin-auth/*`反代到:8000 |
+| Caddy | :80/:443 | `caddy` | 静态文件服务 `root site/dist` + `/api/*`、`/login*` 反代到:8000 |
 
 ### 常用命令
 
@@ -243,8 +269,8 @@ BASE_URL=https://jeffshare.com ./run.sh
 
 - **Astro 5** + Tailwind CSS v4 + daisyUI v5 — 静态站点生成
 - **Vue 3** (@astrojs/vue) — 交互岛（预留）
-- **Decap CMS** — Git-based 网页内容管理后台
-- **FastAPI** + httpx — OAuth 中转 + API 骨架
+- **网页后台（所见即所得编辑器）** — 规划中，本期未实现；内容管理走直接改磁盘文件
+- **FastAPI** + httpx — 密码登录鉴权 + API 骨架（预留给未来网页后台）
 - **Caddy** — 反向代理 + 静态文件服务
 - **Docker** (node:20-alpine + node:20) — Astro 构建 + E2E 测试
 - **Playwright** — 端到端测试（Chromium，Docker 内运行）

@@ -15,3 +15,5 @@ e2e/.last-run.json
 e2e/.cache/
 # content/ 按决策脱管：保留磁盘文件，不推送到公开仓库
 content/
+# 内容图片不进 git（构建时随 public 挂载烤进 dist）
+site/public/images/
