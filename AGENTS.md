@@ -117,7 +117,7 @@
 - `content/posts/<slug>.md` —— 文章正文
 - `content/posts/<slug>_pic/` —— 该文所有配图
 - md 中用相对路径引用：`![说明](./<slug>_pic/图.png)`（Astro 构建时自动打包进 `_astro/`）
-- 旧文章仍用 `/images/<图>`（绝对路径，指向 `site/public/images/`；已 gitignore，磁盘保留）
+- 所有文章（含早期文章）图片均已迁移到各自的 `<slug>_pic/` 目录，统一采用 co-located 约定；`site/public/images/` 已不再使用
 
 ### 方式一：直接改磁盘文件（推荐，零依赖）
 1. 在 `content/posts/` 下新建 `<slug>.md`，frontmatter 格式:
