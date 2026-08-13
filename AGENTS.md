@@ -13,7 +13,7 @@
 │   │   ├── components/            # Card, Hero, SiteNav
 │   │   ├── pages/                 # index, blog/[slug], reports, share/[...path]
 │   │   └── styles/global.css      # daisyUI 主题 (藏蓝#003087 + 橙色#e87722)
-│   ├── public/images/            # 文章配图(legacy 绝对路径 /images/*)；已 gitignore 不进 git
+│   ├── public/images/            # 站点级静态资源(logo/favicon/装饰图等)，进 git；内容配图不在此处
 │   └── dist/                      # 构建产物 → Caddy 直接提供
 ├── app/
 │   ├── main.py                    # FastAPI: 入口 + 路由挂载
@@ -117,7 +117,8 @@
 - `content/posts/<slug>.md` —— 文章正文
 - `content/posts/<slug>_pic/` —— 该文所有配图
 - md 中用相对路径引用：`![说明](./<slug>_pic/图.png)`（Astro 构建时自动打包进 `_astro/`）
-- 所有文章（含早期文章）图片均已迁移到各自的 `<slug>_pic/` 目录，统一采用 co-located 约定；`site/public/images/` 已不再使用
+- 所有文章（含早期文章）图片均已迁移到各自的 `<slug>_pic/` 目录，统一采用 co-located 约定
+- **两类图片的归属**：内容配图 → co-located 在 `<slug>_pic/`（随 `content/` 脱管，不进 git）；站点级资源（logo/favicon/装饰图等）→ 放 `site/public/images/` 或 `site/src/assets/`，**进 git**，与内容无关
 
 ### 方式一：直接改磁盘文件（推荐，零依赖）
 1. 在 `content/posts/` 下新建 `<slug>.md`，frontmatter 格式:
